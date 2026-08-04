@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         String   @default("member") // "admin" | "member"
+  createdAt    DateTime @default(now())
+
+  lists    List[]
+  contacts Contact[]
+}
+
+model List {
+  id        String   @id @default(cuid())
+  title     String
+  kind      String   @default("general") // e.g. "grocery" | "todo" | "general"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy   User   @relation(fields: [createdById], references: [id])
+  createdById String
+
+  items ListItem[]
+}
+
+model ListItem {
+  id        String   @id @default(cuid())
+  label     String
+  quantity  String?
+  isDone    Boolean  @default(false)
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  list   List   @relation(fields: [listId], references: [id], onDelete: Cascade)
+  listId String
+}
+
+model Contact {
+  id           String   @id @default(cuid())
+  firstName    String
+  lastName     String?
+  relationship String? // e.g. "Grandparent", "Cousin", "Friend"
+  phone        String?
+  email        String?
+  address      String?
+  birthday     DateTime?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  createdBy   User   @relation(fields: [createdById], references: [id])
+  createdById String
+}
