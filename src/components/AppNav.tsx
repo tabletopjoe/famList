@@ -71,8 +71,8 @@ export function AppSidebar() {
       style={{ width: "var(--chrome-size)" }}
       className="hidden flex-col items-center gap-1 py-2 md:flex"
     >
-      {items.map((item) => (
-        <NavIcon key={item.key} {...item} />
+      {items.map(({ key, ...item }) => (
+        <NavIcon key={key} {...item} />
       ))}
     </nav>
   );
@@ -84,8 +84,8 @@ export function MobileNav() {
 
   return (
     <nav aria-label="Main navigation" className="flex items-center gap-1 md:hidden">
-      {items.map((item) => (
-        <NavIcon key={item.key} {...item} />
+      {items.map(({ key, ...item }) => (
+        <NavIcon key={key} {...item} />
       ))}
     </nav>
   );
