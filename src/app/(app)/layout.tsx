@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { logout } from "@/app/actions/auth";
-import { modules } from "@/modules/registry";
+import { AppSidebar, MobileNav } from "@/components/AppNav";
+import { PageTitle } from "@/components/PageTitle";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   // Also enforced by proxy.ts at the edge; this is the "real" check per
@@ -9,30 +9,30 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const user = await getCurrentUser();
 
   return (
-    <div className="flex min-h-full flex-col">
-      <header className="border-b border-black/10 dark:border-white/15">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-          <Link href="/" className="text-lg font-semibold">
-            famList
-          </Link>
-          <nav className="flex items-center gap-4 text-sm">
-            {modules.map((mod) => (
-              <Link key={mod.key} href={mod.href} className="hover:underline">
-                {mod.icon} {mod.name}
-              </Link>
-            ))}
-          </nav>
-          <div className="flex items-center gap-3 text-sm">
-            <span className="text-black/60 dark:text-white/60">{user.name}</span>
+    <div className="flex min-h-screen">
+      <AppSidebar />
+      <div className="flex flex-1 flex-col">
+        <header
+          style={{ height: "var(--chrome-size)" }}
+          className="flex items-center gap-3 border-b border-white/15 px-4 text-sm"
+        >
+          <div className="flex items-center gap-3">
+            <MobileNav />
+            <PageTitle />
+          </div>
+          <div className="ml-auto flex items-center gap-3">
+            <span className="text-white/60">{user.name}</span>
             <form action={logout}>
               <button type="submit" className="hover:underline">
                 Log out
               </button>
             </form>
           </div>
-        </div>
-      </header>
-      <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-8">{children}</main>
+        </header>
+        <main className="flex-1 px-6 py-8 md:border-l md:border-white/15">
+          <div className="mx-auto w-full max-w-4xl">{children}</div>
+        </main>
+      </div>
     </div>
   );
 }

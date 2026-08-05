@@ -9,7 +9,6 @@ export default async function ContactsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Contacts</h1>
       <CreateContactForm />
       {contacts.length === 0 ? (
         <p className="text-sm text-black/60 dark:text-white/60">No contacts yet — add one above.</p>

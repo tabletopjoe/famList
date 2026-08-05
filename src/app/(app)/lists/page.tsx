@@ -9,7 +9,6 @@ export default async function ListsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Lists</h1>
       <CreateListForm />
       {lists.length === 0 ? (
         <p className="text-sm text-black/60 dark:text-white/60">No lists yet — create one above.</p>
