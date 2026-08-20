@@ -26,6 +26,7 @@ model List {
   id        String   @id @default(cuid())
   title     String
   kind      String   @default("general") // e.g. "grocery" | "todo" | "general"
+  isPrimary Boolean  @default(false) // at most one list is primary at a time — enforced in code, not the schema
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

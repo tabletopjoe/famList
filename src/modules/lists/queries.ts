@@ -8,6 +8,10 @@ export function getLists() {
   });
 }
 
+export function getPrimaryList() {
+  return db.list.findFirst({ where: { isPrimary: true } });
+}
+
 export function getListWithItems(id: string) {
   return db.list.findUnique({
     where: { id },

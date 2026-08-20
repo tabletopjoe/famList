@@ -33,6 +33,20 @@ export async function deleteList(listId: string) {
   redirect("/lists");
 }
 
+/** At most one list is primary at a time — setting one unsets any other. */
+export async function setPrimaryList(listId: string, makePrimary: boolean) {
+  await verifySession();
+  if (makePrimary) {
+    await db.$transaction([
+      db.list.updateMany({ where: { isPrimary: true }, data: { isPrimary: false } }),
+      db.list.update({ where: { id: listId }, data: { isPrimary: true } }),
+    ]);
+  } else {
+    await db.list.update({ where: { id: listId }, data: { isPrimary: false } });
+  }
+  revalidatePath("/lists");
+}
+
 const AddItemSchema = z.object({
   label: z.string().trim().min(1, { error: "Enter an item name." }).max(200),
   quantity: z.string().trim().max(60).optional(),
