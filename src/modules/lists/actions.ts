@@ -63,8 +63,12 @@ export async function addItem(listId: string, _prevState: ActionState, formData:
     return { error: parsed.error.issues[0]?.message ?? "Enter an item name." };
   }
 
+  // New items start undone, so append after the current undone items —
+  // position only needs to order items within their own isDone group,
+  // since isDone is the primary sort key (see getListWithItems).
+  const position = await db.listItem.count({ where: { listId, isDone: false } });
   await db.listItem.create({
-    data: { listId, label: parsed.data.label, quantity: parsed.data.quantity },
+    data: { listId, label: parsed.data.label, quantity: parsed.data.quantity, position },
   });
   revalidatePath(`/lists/${listId}`);
 }
@@ -78,5 +82,25 @@ export async function toggleItem(listId: string, itemId: string, isDone: boolean
 export async function deleteItem(listId: string, itemId: string) {
   await verifySession();
   await db.listItem.delete({ where: { id: itemId } });
+  revalidatePath(`/lists/${listId}`);
+}
+
+/** Swaps an item with its neighbor in the same isDone group and renormalizes positions to match. */
+export async function moveItem(listId: string, itemId: string, direction: "up" | "down") {
+  await verifySession();
+  const items = await db.listItem.findMany({
+    where: { listId },
+    orderBy: [{ isDone: "asc" }, { position: "asc" }, { createdAt: "asc" }],
+  });
+  const idx = items.findIndex((i) => i.id === itemId);
+  if (idx === -1) return;
+  const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+  const neighbor = items[swapIdx];
+  if (!neighbor || neighbor.isDone !== items[idx].isDone) return;
+
+  const order = items.map((i) => i.id);
+  [order[idx], order[swapIdx]] = [order[swapIdx], order[idx]];
+
+  await db.$transaction(order.map((id, position) => db.listItem.update({ where: { id }, data: { position } })));
   revalidatePath(`/lists/${listId}`);
 }

@@ -27,9 +27,19 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
         <p className="text-sm text-black/60 dark:text-white/60">No items yet — add one above.</p>
       ) : (
         <ul className="divide-y divide-black/10 dark:divide-white/15">
-          {list.items.map((item) => (
-            <ItemRow key={item.id} listId={list.id} item={item} />
-          ))}
+          {list.items.map((item, index) => {
+            const prev = list.items[index - 1];
+            const next = list.items[index + 1];
+            return (
+              <ItemRow
+                key={item.id}
+                listId={list.id}
+                item={item}
+                canMoveUp={!!prev && prev.isDone === item.isDone}
+                canMoveDown={!!next && next.isDone === item.isDone}
+              />
+            );
+          })}
         </ul>
       )}
     </div>
