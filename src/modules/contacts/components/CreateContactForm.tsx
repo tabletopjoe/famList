@@ -21,14 +21,22 @@ export function CreateContactForm() {
     <form ref={formRef} action={formAction} className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 dark:border-white/15">
       <p className="font-medium">Add a contact</p>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <input name="firstName" placeholder="First name" required className={inputClass} />
-        <input name="lastName" placeholder="Last name" className={inputClass} />
-        <input name="relationship" placeholder="Relationship (e.g. Grandma)" className={inputClass} />
-        <input name="phone" placeholder="Phone" className={inputClass} />
-        <input name="email" type="email" placeholder="Email" className={inputClass} />
-        <input name="address" placeholder="Address" className={inputClass} />
+        <div className="flex flex-col gap-3">
+          <input name="firstName" placeholder="First name" required className={inputClass} />
+          <input name="phone" placeholder="Phone" className={inputClass} />
+          <input name="email" type="email" placeholder="Email" className={inputClass} />
+          <input name="relationship" placeholder="Relationship (e.g. Grandma)" className={inputClass} />
+          <textarea name="notes" placeholder="Notes" className={`${inputClass} flex-1 resize-none`} />
+        </div>
+        <div className="flex flex-col gap-3">
+          <input name="lastName" placeholder="Last name" className={inputClass} />
+          <input name="address1" placeholder="Address 1" className={inputClass} />
+          <input name="address2" placeholder="Address 2" className={inputClass} />
+          <input name="city" placeholder="City" className={inputClass} />
+          <input name="state" placeholder="State" className={inputClass} />
+          <input name="zip" placeholder="Zip" className={inputClass} />
+        </div>
       </div>
-      <textarea name="notes" placeholder="Notes" rows={2} className={inputClass} />
       <div className="flex items-center gap-3">
         <button
           type="submit"

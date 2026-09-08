@@ -55,7 +55,11 @@ model Contact {
   relationship String? // e.g. "Grandparent", "Cousin", "Friend"
   phone        String?
   email        String?
-  address      String?
+  address1     String?
+  address2     String?
+  city         String?
+  state        String?
+  zip          String?
   birthday     DateTime?
   notes        String?
   createdAt    DateTime @default(now())

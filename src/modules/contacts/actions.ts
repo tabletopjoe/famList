@@ -13,7 +13,11 @@ const CreateContactSchema = z.object({
   relationship: z.string().trim().max(80).optional(),
   phone: z.string().trim().max(40).optional(),
   email: z.email({ error: "Enter a valid email." }).optional().or(z.literal("")),
-  address: z.string().trim().max(300).optional(),
+  address1: z.string().trim().max(200).optional(),
+  address2: z.string().trim().max(200).optional(),
+  city: z.string().trim().max(100).optional(),
+  state: z.string().trim().max(50).optional(),
+  zip: z.string().trim().max(20).optional(),
   notes: z.string().trim().max(1000).optional(),
 });
 
@@ -32,7 +36,11 @@ export async function createContact(_prevState: ActionState, formData: FormData)
     relationship: emptyToUndefined(formData.get("relationship")),
     phone: emptyToUndefined(formData.get("phone")),
     email: emptyToUndefined(formData.get("email")) ?? "",
-    address: emptyToUndefined(formData.get("address")),
+    address1: emptyToUndefined(formData.get("address1")),
+    address2: emptyToUndefined(formData.get("address2")),
+    city: emptyToUndefined(formData.get("city")),
+    state: emptyToUndefined(formData.get("state")),
+    zip: emptyToUndefined(formData.get("zip")),
     notes: emptyToUndefined(formData.get("notes")),
   });
 
