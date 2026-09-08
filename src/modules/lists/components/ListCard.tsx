@@ -24,7 +24,7 @@ export function ListCard({ list, anyPrimary }: ListCardProps) {
   const showPrimaryToggle = list.isPrimary || !anyPrimary;
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-white/15 p-4">
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-white/15 bg-card-background p-4">
       <Link href={`/lists/${list.id}`} className="flex-1">
         <p className="font-medium">{list.title}</p>
         <p className="text-sm text-white/60">
