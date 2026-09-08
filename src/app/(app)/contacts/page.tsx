@@ -2,6 +2,7 @@ import { getCurrentUser } from "@/lib/auth/dal";
 import { getContacts } from "@/modules/contacts/queries";
 import { CreateContactForm } from "@/modules/contacts/components/CreateContactForm";
 import { ContactCard } from "@/modules/contacts/components/ContactCard";
+import { ExportContactsButton } from "@/modules/contacts/components/ExportContactsButton";
 
 export default async function ContactsPage() {
   await getCurrentUser();
@@ -9,6 +10,7 @@ export default async function ContactsPage() {
 
   return (
     <div className="space-y-6">
+      {contacts.length > 0 && <ExportContactsButton />}
       <CreateContactForm />
       {contacts.length === 0 ? (
         <p className="text-sm text-black/60 dark:text-white/60">No contacts yet — add one above.</p>

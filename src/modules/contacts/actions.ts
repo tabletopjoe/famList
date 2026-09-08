@@ -60,3 +60,54 @@ export async function deleteContact(contactId: string) {
   await db.contact.delete({ where: { id: contactId } });
   revalidatePath("/contacts");
 }
+
+const CSV_COLUMNS = [
+  "First name",
+  "Last name",
+  "Relationship",
+  "Phone",
+  "Email",
+  "Address 1",
+  "Address 2",
+  "City",
+  "State",
+  "Zip",
+  "Birthday",
+  "Notes",
+] as const;
+
+// Wraps a field in quotes (and doubles up any inner quotes) whenever it
+// contains a comma, quote, or newline — the minimum CSV escaping needed for
+// a file that opens cleanly in Excel/Sheets/Numbers.
+function csvField(value: string | null | undefined) {
+  const text = value ?? "";
+  return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+}
+
+export async function exportContactsCsv() {
+  await verifySession();
+  const contacts = await db.contact.findMany({
+    orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
+  });
+
+  const rows = contacts.map((contact) =>
+    [
+      contact.firstName,
+      contact.lastName,
+      contact.relationship,
+      contact.phone,
+      contact.email,
+      contact.address1,
+      contact.address2,
+      contact.city,
+      contact.state,
+      contact.zip,
+      contact.birthday ? contact.birthday.toISOString().slice(0, 10) : null,
+      contact.notes,
+    ]
+      .map(csvField)
+      .join(",")
+  );
+
+  return [CSV_COLUMNS.join(","), ...rows].join("\r\n");
+}
