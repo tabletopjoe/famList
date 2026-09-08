@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { getListWithItems } from "@/modules/lists/queries";
 import { AddItemForm } from "@/modules/lists/components/AddItemForm";
@@ -16,9 +17,14 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href="/lists" className="text-sm text-black/60 hover:underline dark:text-white/60">
-          ← All lists
+      <div className="space-y-2">
+        <Link
+          href="/lists?view=all"
+          style={{ height: "calc(var(--chrome-size) - 12px)" }}
+          className="inline-flex items-center gap-2 rounded-md bg-foreground px-4 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
+        >
+          <ArrowLeft className="size-5" strokeWidth={1.75} />
+          All lists
         </Link>
         <h1 className="text-2xl font-semibold">{list.title}</h1>
       </div>
