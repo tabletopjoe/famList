@@ -9,7 +9,7 @@
  * It's safe to re-run — existing emails are skipped, not overwritten.
  */
 import bcrypt from "bcryptjs";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 
 // Not importing src/lib/auth/password.ts here: it's marked "server-only",
@@ -17,8 +17,8 @@ import { PrismaClient } from "../src/generated/prisma/client";
 // plain tsx/Node), so it throws unconditionally if imported directly.
 const hashPassword = (plain: string) => bcrypt.hash(plain, 10);
 
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL ?? "file:./dev.db",
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL,
 });
 const db = new PrismaClient({ adapter });
 
