@@ -30,3 +30,15 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+/* Mobile Safari zooms the page in when you focus a form control whose
+   font-size is under 16px, and never zooms back out. The app styles inputs
+   as `text-sm` (14px) for density on desktop; bump them back to 16px on
+   small screens so focusing a field doesn't shift the viewport. */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}

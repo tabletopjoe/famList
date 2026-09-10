@@ -16,18 +16,25 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <div className="flex flex-1 flex-col">
           <header
             style={{ height: "var(--chrome-size)" }}
-            className="flex items-center gap-3 border-b border-white/15 px-4 text-sm"
+            className="flex items-center gap-3 overflow-hidden border-b border-white/15 px-4 text-sm"
           >
-            <div className="flex items-center gap-3">
-              <MobileNav />
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <div className="shrink-0">
+                <MobileNav />
+              </div>
+              {/* min-w-0 above lets PageTitle's `truncate` actually engage
+                  when the row is too narrow, instead of pushing the row wider
+                  than the viewport. */}
               <PageTitle />
               {/* Pages can drop page-specific actions here — e.g. Contacts'
                   export button — via useTopBarSlot, even though this header
                   lives above them in the layout. */}
-              <TopBarSlotOutlet />
+              <div className="shrink-0">
+                <TopBarSlotOutlet />
+              </div>
             </div>
-            <div className="ml-auto flex items-center gap-3">
-              <span className="text-white/60">{user.name}</span>
+            <div className="flex shrink-0 items-center gap-3">
+              <span className="max-w-[8rem] truncate text-white/60">{user.name}</span>
               <form action={logout}>
                 <button type="submit" className="hover:underline">
                   Log out
