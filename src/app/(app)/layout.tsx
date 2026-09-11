@@ -13,7 +13,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="flex min-h-screen">
       <AppSidebar />
       <TopBarSlotProvider>
-        <div className="flex flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col">
           <header
             style={{ height: "var(--chrome-size)" }}
             className="flex items-center gap-3 overflow-hidden border-b border-white/15 px-4 text-sm"
