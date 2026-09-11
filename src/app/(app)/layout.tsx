@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/lib/auth/dal";
 import { logout } from "@/app/actions/auth";
-import { AppSidebar, MobileNav } from "@/components/AppNav";
+import { AppSidebar, MobileNav, BuildTag } from "@/components/AppNav";
 import { PageTitle } from "@/components/PageTitle";
 import { TopBarSlotProvider, TopBarSlotOutlet } from "@/components/TopBarSlot";
 
@@ -46,6 +46,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <div className="mx-auto w-full max-w-4xl">{children}</div>
           </main>
         </div>
+        {/* The sidebar (which carries its own BuildTag) is desktop-only, so
+            mirror the stamp into a corner on mobile for deploy checks. */}
+        <BuildTag className="pointer-events-none fixed bottom-1 left-2 z-50 md:hidden" />
       </TopBarSlotProvider>
     </div>
   );

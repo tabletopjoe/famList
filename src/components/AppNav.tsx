@@ -56,6 +56,25 @@ function NavIcon({ href, label, Icon, active }: NavItem) {
   );
 }
 
+const BUILD_SHA = process.env.NEXT_PUBLIC_BUILD_SHA ?? "dev";
+const BUILD_DATE = process.env.NEXT_PUBLIC_BUILD_DATE ?? "";
+
+/**
+ * Build stamp (commit sha + build date). Auto-derived at build time in
+ * next.config.ts, so it advances on every commit/deploy with nothing to
+ * bump by hand. Handy for confirming a deploy actually landed.
+ */
+export function BuildTag({ className = "" }: { className?: string }) {
+  return (
+    <span
+      title={BUILD_DATE ? `${BUILD_SHA} · built ${BUILD_DATE}` : BUILD_SHA}
+      className={`font-mono text-[10px] leading-none tracking-tight text-white/30 ${className}`}
+    >
+      {BUILD_SHA}
+    </span>
+  );
+}
+
 /**
  * Desktop/tablet: vertical icon bar down the left edge. Hidden below the
  * `md` breakpoint — on narrow screens the same items move into MobileNav
@@ -74,6 +93,7 @@ export function AppSidebar() {
       {items.map(({ key, ...item }) => (
         <NavIcon key={key} {...item} />
       ))}
+      <BuildTag className="mt-auto pb-1" />
     </nav>
   );
 }
