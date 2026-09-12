@@ -11,12 +11,16 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  name         String
-  passwordHash String
-  role         String   @default("member") // "admin" | "member"
-  createdAt    DateTime @default(now())
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  name               String
+  passwordHash       String
+  role               String   @default("member") // "admin" | "member"
+  // Forces a redirect to /settings until the user sets their own password.
+  // Set true when an account is created (seed script or, later, /admin);
+  // cleared by the change-password action once they do.
+  mustChangePassword Boolean  @default(false)
+  createdAt          DateTime @default(now())
 
   lists    List[]
   contacts Contact[]

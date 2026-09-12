@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, ClipboardList, User, type LucideIcon } from "lucide-react";
+import { Home, ClipboardList, User, Settings, type LucideIcon } from "lucide-react";
 import { modules } from "@/modules/registry";
 
 const iconButtonStyle = {
@@ -37,6 +37,10 @@ function useNavItems(): NavItem[] {
       Icon: moduleIcons[mod.key],
       active: pathname === mod.href || pathname.startsWith(`${mod.href}/`),
     })),
+    // Not a data module (no entry in modules/registry.ts) — it's account
+    // settings, not a family-data feature, so it's a plain nav item here
+    // rather than something the registry loop picks up automatically.
+    { key: "settings", href: "/settings", label: "Settings", Icon: Settings, active: pathname === "/settings" },
   ];
 }
 

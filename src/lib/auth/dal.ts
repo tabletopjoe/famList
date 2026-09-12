@@ -32,10 +32,16 @@ export const getCurrentUser = cache(async () => {
   const session = await verifySession();
   const user = await db.user.findUnique({
     where: { id: session.userId },
-    select: { id: true, name: true, email: true, role: true },
+    select: { id: true, name: true, email: true, role: true, mustChangePassword: true },
   });
   if (!user) {
-    redirect("/login");
+    // The JWT is valid but no longer points at a real row (deleted user, or
+    // a cookie that predates a database reset). A plain redirect isn't
+    // enough — proxy.ts sees the (still-valid) session and won't let an
+    // apparently-logged-in visitor land on /login, so without clearing the
+    // cookie this bounces forever. Server Components can't mutate cookies
+    // themselves, so route through /api/force-logout, which can.
+    redirect("/api/force-logout");
   }
   return user;
 });

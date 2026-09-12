@@ -43,7 +43,7 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
     return { error: "Incorrect email or password." };
   }
 
-  await createSession(user.id);
+  await createSession(user.id, user.mustChangePassword);
   redirect("/");
 }
 

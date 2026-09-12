@@ -17,6 +17,11 @@ function getSecretKey() {
 
 export type SessionPayload = {
   userId: string;
+  // Mirrors User.mustChangePassword at the time the session was issued, so
+  // proxy.ts can redirect to /settings without a DB round-trip. Reissue the
+  // session (call createSession again) whenever the underlying flag changes,
+  // or this goes stale until the cookie's natural expiry.
+  mustChangePassword: boolean;
   expiresAt: number; // epoch ms
 };
 
@@ -40,10 +45,14 @@ async function decrypt(token: string | undefined): Promise<SessionPayload | null
   }
 }
 
-/** Call after verifying credentials to start a logged-in session. */
-export async function createSession(userId: string) {
+/**
+ * Call after verifying credentials to start a logged-in session, and again
+ * after changing a password to refresh the mustChangePassword flag baked
+ * into the existing cookie.
+ */
+export async function createSession(userId: string, mustChangePassword: boolean) {
   const expiresAt = Date.now() + SESSION_DURATION_MS;
-  const token = await encrypt({ userId, expiresAt });
+  const token = await encrypt({ userId, mustChangePassword, expiresAt });
   const cookieStore = await cookies();
 
   cookieStore.set(SESSION_COOKIE, token, {
