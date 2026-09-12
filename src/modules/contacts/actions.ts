@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import * as z from "zod";
 import { db } from "@/lib/db";
 import { verifySession } from "@/lib/auth/dal";
+import { canAccessContact, getVisibleContactOwnerIds } from "./queries";
 
 export type ActionState = { error: string } | undefined;
 
@@ -56,7 +57,10 @@ export async function createContact(_prevState: ActionState, formData: FormData)
 }
 
 export async function deleteContact(contactId: string) {
-  await verifySession();
+  const session = await verifySession();
+  if (!(await canAccessContact(session.userId, contactId))) {
+    throw new Error("You don't have access to this contact.");
+  }
   await db.contact.delete({ where: { id: contactId } });
   revalidatePath("/contacts");
 }
@@ -85,8 +89,10 @@ function csvField(value: string | null | undefined) {
 }
 
 export async function exportContactsCsv() {
-  await verifySession();
+  const session = await verifySession();
+  const ownerIds = await getVisibleContactOwnerIds(session.userId);
   const contacts = await db.contact.findMany({
+    where: { createdById: { in: ownerIds } },
     orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
   });
 

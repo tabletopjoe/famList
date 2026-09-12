@@ -5,8 +5,8 @@ import { ContactCard } from "@/modules/contacts/components/ContactCard";
 import { ExportContactsButton } from "@/modules/contacts/components/ExportContactsButton";
 
 export default async function ContactsPage() {
-  await getCurrentUser();
-  const contacts = await getContacts();
+  const user = await getCurrentUser();
+  const contacts = await getContacts(user.id);
 
   return (
     <div className="space-y-6">

@@ -22,7 +22,7 @@ export default async function ListsPage({
     }
   }
 
-  const lists = await getLists();
+  const lists = await getLists(user.id);
   const anyPrimary = user.primaryListId !== null;
 
   return (

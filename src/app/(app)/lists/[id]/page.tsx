@@ -8,9 +8,9 @@ import { ItemRow } from "@/modules/lists/components/ItemRow";
 import { DeleteModeProvider } from "@/modules/lists/components/DeleteModeContext";
 
 export default async function ListDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  await getCurrentUser();
+  const user = await getCurrentUser();
   const { id } = await params;
-  const list = await getListWithItems(id);
+  const list = await getListWithItems(id, user.id);
 
   if (!list) {
     notFound();
