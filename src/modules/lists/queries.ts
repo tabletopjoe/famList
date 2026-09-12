@@ -1,14 +1,21 @@
 import "server-only";
 import { db } from "@/lib/db";
+import type { OwnershipFilter } from "@/components/OwnershipFilterChips";
 
 /** A list is visible to its creator, or to anyone it's been explicitly shared with. */
 function visibleToUser(userId: string) {
   return { OR: [{ createdById: userId }, { shares: { some: { userId } } }] };
 }
 
-export function getLists(userId: string) {
+function whereForFilter(userId: string, filter: OwnershipFilter) {
+  if (filter === "mine") return { createdById: userId };
+  if (filter === "shared") return { createdById: { not: userId }, shares: { some: { userId } } };
+  return visibleToUser(userId);
+}
+
+export function getLists(userId: string, filter: OwnershipFilter = "all") {
   return db.list.findMany({
-    where: visibleToUser(userId),
+    where: whereForFilter(userId, filter),
     orderBy: { createdAt: "desc" },
     include: { _count: { select: { items: true } } },
   });

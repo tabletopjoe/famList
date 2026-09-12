@@ -1,5 +1,6 @@
 import "server-only";
 import { db } from "@/lib/db";
+import type { OwnershipFilter } from "@/components/OwnershipFilterChips";
 
 /**
  * IDs of users whose contacts userId can see: themselves, plus anyone they
@@ -17,8 +18,14 @@ export async function getVisibleContactOwnerIds(userId: string): Promise<string[
   return [userId, ...others];
 }
 
-export async function getContacts(userId: string) {
-  const ownerIds = await getVisibleContactOwnerIds(userId);
+export async function getContacts(userId: string, filter: OwnershipFilter = "all") {
+  let ownerIds: string[];
+  if (filter === "mine") {
+    ownerIds = [userId];
+  } else {
+    const visible = await getVisibleContactOwnerIds(userId);
+    ownerIds = filter === "shared" ? visible.filter((id) => id !== userId) : visible;
+  }
   return db.contact.findMany({
     where: { createdById: { in: ownerIds } },
     orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
