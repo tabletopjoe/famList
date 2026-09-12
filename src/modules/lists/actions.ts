@@ -33,17 +33,13 @@ export async function deleteList(listId: string) {
   redirect("/lists");
 }
 
-/** At most one list is primary at a time — setting one unsets any other. */
+/** A user's primary list is their own preference (User.primaryListId) — setting it is just an overwrite. */
 export async function setPrimaryList(listId: string, makePrimary: boolean) {
-  await verifySession();
-  if (makePrimary) {
-    await db.$transaction([
-      db.list.updateMany({ where: { isPrimary: true }, data: { isPrimary: false } }),
-      db.list.update({ where: { id: listId }, data: { isPrimary: true } }),
-    ]);
-  } else {
-    await db.list.update({ where: { id: listId }, data: { isPrimary: false } });
-  }
+  const session = await verifySession();
+  await db.user.update({
+    where: { id: session.userId },
+    data: { primaryListId: makePrimary ? listId : null },
+  });
   revalidatePath("/lists");
 }
 

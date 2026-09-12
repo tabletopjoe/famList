@@ -32,7 +32,7 @@ export const getCurrentUser = cache(async () => {
   const session = await verifySession();
   const user = await db.user.findUnique({
     where: { id: session.userId },
-    select: { id: true, name: true, email: true, role: true, mustChangePassword: true },
+    select: { id: true, name: true, email: true, role: true, mustChangePassword: true, primaryListId: true },
   });
   if (!user) {
     // The JWT is valid but no longer points at a real row (deleted user, or

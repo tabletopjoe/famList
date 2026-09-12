@@ -20,24 +20,66 @@ model User {
   // Set true when an account is created (seed script or, later, /admin);
   // cleared by the change-password action once they do.
   mustChangePassword Boolean  @default(false)
+  // Which list this user lands on by default — a personal preference, not a
+  // property of the list itself (replaces the old global List.isPrimary).
+  primaryListId      String?  @unique
+  primaryList        List?    @relation("UserPrimaryList", fields: [primaryListId], references: [id], onDelete: SetNull)
   createdAt          DateTime @default(now())
 
-  lists    List[]
-  contacts Contact[]
+  lists            List[]             @relation("ListCreatedBy")
+  contacts         Contact[]
+  listShares       ListShare[]
+  contactSharesAsA ContactSharePair[] @relation("ContactShareUserA")
+  contactSharesAsB ContactSharePair[] @relation("ContactShareUserB")
 }
 
 model List {
   id        String   @id @default(cuid())
   title     String
   kind      String   @default("general") // e.g. "grocery" | "todo" | "general"
-  isPrimary Boolean  @default(false) // at most one list is primary at a time — enforced in code, not the schema
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  createdBy   User   @relation(fields: [createdById], references: [id])
+  createdBy   User   @relation("ListCreatedBy", fields: [createdById], references: [id])
   createdById String
 
-  items ListItem[]
+  // The (at most one) user this list is currently the default/primary for.
+  primaryFor User? @relation("UserPrimaryList")
+
+  items  ListItem[]
+  shares ListShare[]
+}
+
+// Grants one user access to a list they didn't create — per-list, one-
+// directional (the owner shares with whoever they choose; being shared
+// with doesn't grant sharing back). Full-edit, not view-only: anyone with a
+// share can do anything the owner can on that list.
+model ListShare {
+  id        String   @id @default(cuid())
+  listId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  list List @relation(fields: [listId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, userId])
+}
+
+// Mutual contact-sharing between two users: one row per pair means "these
+// two people see all of each other's contacts," not per-contact and not
+// directional. App code normalizes (userAId, userBId) — e.g. sorted — so a
+// pair never ends up with two conflicting rows depending on who set it up.
+model ContactSharePair {
+  id        String   @id @default(cuid())
+  userAId   String
+  userBId   String
+  createdAt DateTime @default(now())
+
+  userA User @relation("ContactShareUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB User @relation("ContactShareUserB", fields: [userBId], references: [id], onDelete: Cascade)
+
+  @@unique([userAId, userBId])
 }
 
 model ListItem {

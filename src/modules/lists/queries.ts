@@ -8,8 +8,11 @@ export function getLists() {
   });
 }
 
-export function getPrimaryList() {
-  return db.list.findFirst({ where: { isPrimary: true } });
+/** A user's default/primary list is their own preference now, not a property of the list itself. */
+export async function getPrimaryList(userId: string) {
+  const user = await db.user.findUnique({ where: { id: userId }, select: { primaryListId: true } });
+  if (!user?.primaryListId) return null;
+  return db.list.findUnique({ where: { id: user.primaryListId } });
 }
 
 export function getListWithItems(id: string) {

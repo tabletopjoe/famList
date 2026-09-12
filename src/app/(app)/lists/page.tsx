@@ -9,21 +9,21 @@ export default async function ListsPage({
 }: {
   searchParams: Promise<{ view?: string }>;
 }) {
-  await getCurrentUser();
+  const user = await getCurrentUser();
   const { view } = await searchParams;
 
   // Default entry point: jump straight to the primary list, if one is set.
   // The top bar's "Lists" title links here with ?view=all to bypass this
   // and always land on the overview instead.
   if (view !== "all") {
-    const primary = await getPrimaryList();
+    const primary = await getPrimaryList(user.id);
     if (primary) {
       redirect(`/lists/${primary.id}`);
     }
   }
 
   const lists = await getLists();
-  const anyPrimary = lists.some((list) => list.isPrimary);
+  const anyPrimary = user.primaryListId !== null;
 
   return (
     <div className="space-y-6">
@@ -33,7 +33,12 @@ export default async function ListsPage({
       ) : (
         <div className="space-y-3">
           {lists.map((list) => (
-            <ListCard key={list.id} list={list} anyPrimary={anyPrimary} />
+            <ListCard
+              key={list.id}
+              list={list}
+              isPrimary={list.id === user.primaryListId}
+              anyPrimary={anyPrimary}
+            />
           ))}
         </div>
       )}
