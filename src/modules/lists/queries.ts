@@ -46,3 +46,16 @@ export async function canAccessList(userId: string, listId: string): Promise<boo
   });
   return !!list;
 }
+
+/**
+ * Lists this user owns, with who they're currently shared with — for the
+ * sharing UI in /settings. Only the owner manages a list's sharing, even
+ * though everyone it's shared with gets full edit access to its content.
+ */
+export function getOwnedListsWithShares(userId: string) {
+  return db.list.findMany({
+    where: { createdById: userId },
+    orderBy: { createdAt: "desc" },
+    select: { id: true, title: true, shares: { select: { userId: true } } },
+  });
+}
