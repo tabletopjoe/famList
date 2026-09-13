@@ -45,3 +45,12 @@ export const getCurrentUser = cache(async () => {
   }
   return user;
 });
+
+/** Same checks as getCurrentUser, plus role — bounces non-admins to / instead of letting them render or run admin-only pages/actions. */
+export const requireAdmin = cache(async () => {
+  const user = await getCurrentUser();
+  if (user.role !== "admin") {
+    redirect("/");
+  }
+  return user;
+});

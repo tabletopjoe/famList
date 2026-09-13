@@ -12,19 +12,15 @@
  *
  * It's safe to re-run — existing emails are skipped, not overwritten.
  */
-import crypto from "node:crypto";
 import bcrypt from "bcryptjs";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
+import { generateTempPassword } from "../src/lib/generateTempPassword";
 
 // Not importing src/lib/auth/password.ts here: it's marked "server-only",
 // which is enforced even outside Next's build (this script runs under
 // plain tsx/Node), so it throws unconditionally if imported directly.
 const hashPassword = (plain: string) => bcrypt.hash(plain, 10);
-
-function generateTempPassword() {
-  return crypto.randomBytes(9).toString("base64url"); // 12 url-safe chars
-}
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,

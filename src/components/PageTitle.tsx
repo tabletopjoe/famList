@@ -8,6 +8,7 @@ import { modules } from "@/modules/registry";
 // family-data modules — see the comment in AppNav.tsx's nav item list).
 const staticTitles: Record<string, string> = {
   "/settings": "Settings",
+  "/admin": "Admin",
 };
 
 /** Shows the current module's name in the top bar (e.g. "Lists"), or the app name on the dashboard. */
