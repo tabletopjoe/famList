@@ -1,3 +1,4 @@
+import { LogOut } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { logout } from "@/app/actions/auth";
 import { AppSidebar, MobileNav, BuildTag } from "@/components/AppNav";
@@ -36,8 +37,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <div className="flex shrink-0 items-center gap-3">
               <span className="max-w-[8rem] truncate text-white/60">{user.name}</span>
               <form action={logout}>
-                <button type="submit" className="hover:underline">
-                  Log out
+                <button
+                  type="submit"
+                  aria-label="Log out"
+                  title="Log out"
+                  className="flex size-8 items-center justify-center rounded-md text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  <LogOut className="size-4" strokeWidth={1.75} />
                 </button>
               </form>
             </div>
