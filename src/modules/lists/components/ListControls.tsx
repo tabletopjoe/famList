@@ -2,18 +2,20 @@
 
 import { Trash2 } from "lucide-react";
 import { useDeleteMode } from "./DeleteModeContext";
+import { ListSettingsMenu } from "./ListSettingsMenu";
 
 /**
  * Row of per-list controls, sitting under the title/back-link row and
- * above the add-item form — currently just the delete-mode toggle, but the
- * home for whatever list-level controls come next (so they land here
- * rather than getting bolted onto AddItemForm again).
+ * above the add-item form — currently the delete-mode toggle and the list
+ * settings menu, with sort/filter icons still to come. `relative` here is
+ * load-bearing: it's what ListSettingsMenu's overlay panel positions
+ * itself against (see that component for why).
  */
 export function ListControls() {
   const { deleteMode, toggle } = useDeleteMode();
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="relative flex items-center gap-2">
       <button
         type="button"
         onClick={toggle}
@@ -28,6 +30,7 @@ export function ListControls() {
       >
         <Trash2 className="size-4" strokeWidth={1.75} />
       </button>
+      <ListSettingsMenu />
     </div>
   );
 }
