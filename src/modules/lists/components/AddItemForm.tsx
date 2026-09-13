@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { Plus } from "lucide-react";
 import { addItem, type ActionState } from "../actions";
 
 export function AddItemForm({ listId }: { listId: string }) {
@@ -22,14 +23,16 @@ export function AddItemForm({ listId }: { listId: string }) {
         <input
           name="quantity"
           placeholder="Qty"
-          className="w-20 min-w-0 shrink-0 rounded-md border border-black/10 px-3 py-2 text-sm dark:border-white/15 dark:bg-white/5"
+          className="w-[38px] min-w-0 shrink-0 rounded-md border border-black/10 px-1 py-2 text-center text-sm dark:border-white/15 dark:bg-white/5"
         />
         <button
           type="submit"
           disabled={pending}
-          className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background disabled:opacity-50"
+          aria-label="Add item"
+          title="Add item"
+          className="flex w-[38px] shrink-0 items-center justify-center rounded-md bg-foreground text-background disabled:opacity-50"
         >
-          Add
+          <Plus className="size-4" strokeWidth={2} />
         </button>
       </div>
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
