@@ -17,11 +17,11 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
   }
 
   return (
-    <div className="space-y-6">
+    <div className="-mt-4 space-y-6">
       <div className="space-y-2">
         <Link
           href="/lists?view=all"
-          style={{ height: "calc(var(--chrome-size) - 12px)" }}
+          style={{ height: "calc((var(--chrome-size) - 12px) * 0.6)" }}
           className="inline-flex items-center gap-2 rounded-md bg-foreground px-4 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
         >
           <ArrowLeft className="size-5" strokeWidth={1.75} />
