@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import type { OwnershipFilter } from "@/components/OwnershipFilterChips";
+import type { ListItemOrderByWithRelationInput } from "@/generated/prisma/models";
 
 /** A list is visible to its creator, or to anyone it's been explicitly shared with. */
 function visibleToUser(userId: string) {
@@ -33,16 +34,49 @@ export async function getPrimaryList(userId: string) {
   return db.list.findFirst({ where: { id: user.primaryListId, ...visibleToUser(userId) } });
 }
 
-/** Null both when the list doesn't exist and when it exists but isn't visible to this user — same as a 404 either way. */
-export function getListWithItems(id: string, userId: string) {
-  return db.list.findFirst({
-    where: { id, ...visibleToUser(userId) },
-    include: {
-      items: {
-        orderBy: [{ isDone: "asc" }, { position: "asc" }, { createdAt: "asc" }],
-      },
-    },
+const itemsOrderBy: ListItemOrderByWithRelationInput[] = [
+  { isDone: "asc" },
+  { position: "asc" },
+  { createdAt: "asc" },
+];
+
+/**
+ * Un-checks any item that's been done for at least resetIntervalDays —
+ * shopping lists recur, so this is what lets you check things off during a
+ * trip without re-adding them next time instead of deleting. Reconciled
+ * lazily here (whenever the list is actually loaded) rather than via a
+ * background job: nothing runs in this app unless a request comes in
+ * (serverless, no cron), and "reset by the time someone next opens the
+ * list" is all a family shopping list needs — nobody's watching it reset
+ * itself unopened at 3am.
+ */
+async function resetStaleShoppingItems(listId: string, resetIntervalDays: number): Promise<number> {
+  const cutoff = new Date(Date.now() - resetIntervalDays * 24 * 60 * 60 * 1000);
+  const { count } = await db.listItem.updateMany({
+    where: { listId, isDone: true, completedAt: { lte: cutoff } },
+    data: { isDone: false, completedAt: null },
   });
+  return count;
+}
+
+/** Null both when the list doesn't exist and when it exists but isn't visible to this user — same as a 404 either way. */
+export async function getListWithItems(id: string, userId: string) {
+  const list = await db.list.findFirst({
+    where: { id, ...visibleToUser(userId) },
+    include: { items: { orderBy: itemsOrderBy } },
+  });
+  if (!list) return null;
+
+  if (list.kind === "shopping" && list.resetIntervalDays != null) {
+    const resetCount = await resetStaleShoppingItems(list.id, list.resetIntervalDays);
+    if (resetCount > 0) {
+      // Re-fetch rather than patch the in-memory items: cheap at this
+      // scale, and avoids re-deriving the isDone/position resort by hand.
+      return db.list.findFirst({ where: { id }, include: { items: { orderBy: itemsOrderBy } } });
+    }
+  }
+
+  return list;
 }
 
 /** Whether userId can view/edit listId — created it, or it's been shared with them. Sharing is full-edit, not view-only. */

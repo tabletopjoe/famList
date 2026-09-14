@@ -6,6 +6,7 @@ import * as z from "zod";
 import { db } from "@/lib/db";
 import { verifySession } from "@/lib/auth/dal";
 import { canAccessList } from "./queries";
+import type { ListKind } from "./types";
 
 export type ActionState = { error: string } | undefined;
 
@@ -27,8 +28,12 @@ export async function createList(_prevState: ActionState, formData: FormData): P
     return { error: parsed.error.issues[0]?.message ?? "Enter a valid title." };
   }
 
+  // New lists default to shopping — the schema column defaults to the same
+  // value, but spelling it out here means creation doesn't quietly depend
+  // on that staying in sync.
+  const defaultKind: ListKind = "shopping";
   const list = await db.list.create({
-    data: { title: parsed.data.title, createdById: session.userId },
+    data: { title: parsed.data.title, createdById: session.userId, kind: defaultKind },
   });
   revalidatePath("/lists");
   redirect(`/lists/${list.id}`);
@@ -90,7 +95,16 @@ export async function toggleItem(listId: string, itemId: string, isDone: boolean
   // updateMany (rather than update by id alone) so a mismatched listId/itemId
   // pair silently matches nothing instead of quietly touching a row in a
   // list other than the one access was just checked against.
-  await db.listItem.updateMany({ where: { id: itemId, listId }, data: { isDone } });
+  //
+  // completedAt tracks when isDone last flipped true, cleared when it flips
+  // back — that's the clock resetStaleShoppingItems (queries.ts) reads
+  // against the list's resetIntervalDays to auto-uncheck it later. Setting
+  // it here regardless of list kind is harmless: collection/notes lists
+  // just never read it back.
+  await db.listItem.updateMany({
+    where: { id: itemId, listId },
+    data: { isDone, completedAt: isDone ? new Date() : null },
+  });
   revalidatePath(`/lists/${listId}`);
 }
 
