@@ -5,6 +5,7 @@ import { getOtherUsers } from "@/modules/settings/queries";
 import { ChangePasswordForm } from "@/modules/settings/components/ChangePasswordForm";
 import { ListSharingSection } from "@/modules/settings/components/ListSharingSection";
 import { ContactSharingSection } from "@/modules/settings/components/ContactSharingSection";
+import { CollapsibleSection } from "@/components/CollapsibleSection";
 
 export default async function SettingsPage() {
   const user = await getCurrentUser();
@@ -23,24 +24,27 @@ export default async function SettingsPage() {
           You&apos;re signed in with a temporary password — set your own below.
         </p>
       )}
-      <section className="space-y-3">
-        <h2 className="text-lg font-medium">Change password</h2>
+      {/* Open by default while a password change is required, so the forced
+          flow doesn't hide its own fields behind a collapsed section. */}
+      <CollapsibleSection title="Change password" defaultOpen={user.mustChangePassword}>
         <ChangePasswordForm />
-      </section>
-      <section className="space-y-3">
-        <h2 className="text-lg font-medium">Share your lists</h2>
-        <p className="text-sm text-white/60">
-          Only you can change who your own lists are shared with. Anyone a list is shared with can fully edit it, same as you.
-        </p>
-        <ListSharingSection lists={ownedLists} otherUsers={otherUsers} />
-      </section>
-      <section className="space-y-3">
-        <h2 className="text-lg font-medium">Share your contacts</h2>
-        <p className="text-sm text-white/60">
-          Contact sharing is all-or-nothing and mutual — turning it on shares your whole address book with them, and theirs with you.
-        </p>
-        <ContactSharingSection otherUsers={otherUsers} sharedWithIds={contactSharedWithIds} />
-      </section>
+      </CollapsibleSection>
+      <CollapsibleSection title="Share your lists">
+        <div className="space-y-3">
+          <p className="text-sm text-white/60">
+            Only you can change who your own lists are shared with. Anyone a list is shared with can fully edit it, same as you.
+          </p>
+          <ListSharingSection lists={ownedLists} otherUsers={otherUsers} />
+        </div>
+      </CollapsibleSection>
+      <CollapsibleSection title="Share your contacts">
+        <div className="space-y-3">
+          <p className="text-sm text-white/60">
+            Contact sharing is all-or-nothing and mutual — turning it on shares your whole address book with them, and theirs with you.
+          </p>
+          <ContactSharingSection otherUsers={otherUsers} sharedWithIds={contactSharedWithIds} />
+        </div>
+      </CollapsibleSection>
     </div>
   );
 }
