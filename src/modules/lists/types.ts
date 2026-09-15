@@ -14,12 +14,10 @@ export const LIST_KIND_LABELS: Record<ListKind, string> = {
   notes: "Notes",
 };
 
-/** Preset choices for List.resetIntervalDays — "Never" (null) isn't listed here, it's the absence of a selection. */
-export const RESET_INTERVAL_OPTIONS = [
-  { days: 1, label: "Daily" },
-  { days: 7, label: "Weekly" },
-  { days: 14, label: "Every 2 weeks" },
-  { days: 30, label: "Monthly" },
-] as const;
+/** Selectable day counts for List.resetIntervalDays — "Never" (null) isn't listed here, it's the absence of a selection. */
+export const RESET_INTERVAL_DAYS = [1, 2, 3, 4, 5, 6, 7, 14, 21, 30] as const;
 
-export const RESET_INTERVAL_DAYS = RESET_INTERVAL_OPTIONS.map((opt) => opt.days);
+export const RESET_INTERVAL_OPTIONS = RESET_INTERVAL_DAYS.map((days) => ({
+  days,
+  label: `${days} day${days === 1 ? "" : "s"}`,
+}));

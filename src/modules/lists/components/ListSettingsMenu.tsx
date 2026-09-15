@@ -77,7 +77,7 @@ export function ListSettingsMenu({
                 className={selectClass}
               >
                 {LIST_KINDS.map((k) => (
-                  <option key={k} value={k}>
+                  <option key={k} value={k} className="bg-card-background text-white">
                     {LIST_KIND_LABELS[k]}
                   </option>
                 ))}
@@ -85,7 +85,7 @@ export function ListSettingsMenu({
             </label>
             {kind === "shopping" && (
               <label className="block text-sm text-white/70">
-                Reset checked-off items
+                Reset checked-off items after
                 <select
                   value={resetIntervalDays ?? ""}
                   disabled={isPending}
@@ -95,9 +95,11 @@ export function ListSettingsMenu({
                   }}
                   className={selectClass}
                 >
-                  <option value="">Never</option>
+                  <option value="" className="bg-card-background text-white">
+                    Never
+                  </option>
                   {RESET_INTERVAL_OPTIONS.map((opt) => (
-                    <option key={opt.days} value={opt.days}>
+                    <option key={opt.days} value={opt.days} className="bg-card-background text-white">
                       {opt.label}
                     </option>
                   ))}
