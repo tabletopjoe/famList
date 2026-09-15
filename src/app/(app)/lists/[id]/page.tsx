@@ -7,6 +7,7 @@ import { AddItemForm } from "@/modules/lists/components/AddItemForm";
 import { ItemRow } from "@/modules/lists/components/ItemRow";
 import { ListControls } from "@/modules/lists/components/ListControls";
 import { DeleteModeProvider } from "@/modules/lists/components/DeleteModeContext";
+import type { ListKind } from "@/modules/lists/types";
 
 export default async function ListDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
@@ -31,7 +32,7 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
         <h1 className="min-w-0 flex-1 truncate text-2xl font-semibold">{list.title}</h1>
       </div>
       <DeleteModeProvider>
-        <ListControls />
+        <ListControls listId={list.id} kind={list.kind as ListKind} resetIntervalDays={list.resetIntervalDays} />
         <AddItemForm listId={list.id} />
         {list.items.length === 0 ? (
           <p className="text-sm text-black/60 dark:text-white/60">No items yet — add one above.</p>

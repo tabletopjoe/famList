@@ -6,7 +6,7 @@ import * as z from "zod";
 import { db } from "@/lib/db";
 import { verifySession } from "@/lib/auth/dal";
 import { canAccessList } from "./queries";
-import type { ListKind } from "./types";
+import { LIST_KINDS, RESET_INTERVAL_DAYS, type ListKind } from "./types";
 
 export type ActionState = { error: string } | undefined;
 
@@ -58,6 +58,43 @@ export async function setPrimaryList(listId: string, makePrimary: boolean) {
     data: { primaryListId: makePrimary ? listId : null },
   });
   revalidatePath("/lists");
+}
+
+/**
+ * List settings (kind, reset interval) follow the same access rule as the
+ * list's content, not the owner-only rule sharing uses — anyone the list
+ * is shared with can change these too, same as they can rename or delete
+ * it.
+ */
+export async function setListKind(listId: string, rawKind: string) {
+  const session = await verifySession();
+  await requireListAccess(session.userId, listId);
+  const parsed = z.enum(LIST_KINDS).safeParse(rawKind);
+  if (!parsed.success) return;
+
+  await db.list.update({
+    where: { id: listId },
+    data: {
+      kind: parsed.data,
+      // Only shopping lists use resetIntervalDays — clear it when leaving
+      // that kind so switching back later starts from "no auto-reset"
+      // rather than silently reviving whatever was set before. `undefined`
+      // (not null) while staying "shopping" so a no-op call here can't
+      // clobber an interval someone already set.
+      resetIntervalDays: parsed.data === "shopping" ? undefined : null,
+    },
+  });
+  revalidatePath(`/lists/${listId}`);
+}
+
+export async function setListResetInterval(listId: string, days: number | null) {
+  const session = await verifySession();
+  await requireListAccess(session.userId, listId);
+  if (days !== null && !RESET_INTERVAL_DAYS.includes(days as (typeof RESET_INTERVAL_DAYS)[number])) {
+    throw new Error("Invalid reset interval.");
+  }
+  await db.list.update({ where: { id: listId }, data: { resetIntervalDays: days } });
+  revalidatePath(`/lists/${listId}`);
 }
 
 const AddItemSchema = z.object({

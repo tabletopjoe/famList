@@ -3,6 +3,7 @@
 import { Trash2 } from "lucide-react";
 import { useDeleteMode } from "./DeleteModeContext";
 import { ListSettingsMenu } from "./ListSettingsMenu";
+import type { ListKind } from "../types";
 
 /**
  * Row of per-list controls, sitting under the title/back-link row and
@@ -11,7 +12,15 @@ import { ListSettingsMenu } from "./ListSettingsMenu";
  * load-bearing: it's what ListSettingsMenu's overlay panel positions
  * itself against (see that component for why).
  */
-export function ListControls() {
+export function ListControls({
+  listId,
+  kind,
+  resetIntervalDays,
+}: {
+  listId: string;
+  kind: ListKind;
+  resetIntervalDays: number | null;
+}) {
   const { deleteMode, toggle } = useDeleteMode();
 
   return (
@@ -30,7 +39,7 @@ export function ListControls() {
       >
         <Trash2 className="size-4" strokeWidth={1.75} />
       </button>
-      <ListSettingsMenu />
+      <ListSettingsMenu listId={listId} kind={kind} resetIntervalDays={resetIntervalDays} />
     </div>
   );
 }
