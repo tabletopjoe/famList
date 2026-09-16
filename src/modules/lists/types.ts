@@ -4,7 +4,7 @@
  * List.kind in schema.prisma for why. Add a fourth type here + wherever
  * per-kind behavior branches; no migration needed.
  */
-export const LIST_KINDS = ["shopping", "collection", "notes"] as const;
+export const LIST_KINDS = ["shopping", "collection", "notes", "recipe"] as const;
 
 export type ListKind = (typeof LIST_KINDS)[number];
 
@@ -12,6 +12,7 @@ export const LIST_KIND_LABELS: Record<ListKind, string> = {
   shopping: "Shopping list",
   collection: "Collection",
   notes: "Notes",
+  recipe: "Recipe list",
 };
 
 /** Selectable day counts for List.resetIntervalDays — "Never" (null) isn't listed here, it's the absence of a selection. */
