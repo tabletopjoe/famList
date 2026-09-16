@@ -145,6 +145,16 @@ export async function toggleItem(listId: string, itemId: string, isDone: boolean
   revalidatePath(`/lists/${listId}`);
 }
 
+export async function setAllItemsDone(listId: string, isDone: boolean) {
+  const session = await verifySession();
+  await requireListAccess(session.userId, listId);
+  await db.listItem.updateMany({
+    where: { listId },
+    data: { isDone, completedAt: isDone ? new Date() : null },
+  });
+  revalidatePath(`/lists/${listId}`);
+}
+
 export async function deleteItem(listId: string, itemId: string) {
   const session = await verifySession();
   await requireListAccess(session.userId, listId);

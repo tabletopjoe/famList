@@ -32,7 +32,13 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
         <h1 className="min-w-0 flex-1 truncate text-2xl font-semibold">{list.title}</h1>
       </div>
       <DeleteModeProvider>
-        <ListControls listId={list.id} kind={list.kind as ListKind} resetIntervalDays={list.resetIntervalDays} />
+        <ListControls
+          listId={list.id}
+          kind={list.kind as ListKind}
+          resetIntervalDays={list.resetIntervalDays}
+          doneCount={list.items.filter((item) => item.isDone).length}
+          totalCount={list.items.length}
+        />
         <AddItemForm listId={list.id} />
         {list.items.length === 0 ? (
           <p className="text-sm text-black/60 dark:text-white/60">No items yet — add one above.</p>
