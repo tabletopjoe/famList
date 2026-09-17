@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { getLists, getPrimaryList } from "@/modules/lists/queries";
 import { CreateListForm } from "@/modules/lists/components/CreateListForm";
-import { ListCard } from "@/modules/lists/components/ListCard";
+import { ListCardList } from "@/modules/lists/components/ListCardList";
 import { OwnershipFilterChips, parseOwnershipFilter } from "@/components/OwnershipFilterChips";
 
 const EMPTY_MESSAGE = {
@@ -43,16 +43,7 @@ export default async function ListsPage({
       {lists.length === 0 ? (
         <p className="text-sm text-white/60">{EMPTY_MESSAGE[filter]}</p>
       ) : (
-        <div className="space-y-3">
-          {lists.map((list) => (
-            <ListCard
-              key={list.id}
-              list={list}
-              isPrimary={list.id === user.primaryListId}
-              anyPrimary={anyPrimary}
-            />
-          ))}
-        </div>
+        <ListCardList lists={lists} primaryListId={user.primaryListId} anyPrimary={anyPrimary} />
       )}
     </div>
   );

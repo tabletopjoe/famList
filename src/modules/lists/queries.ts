@@ -4,7 +4,7 @@ import type { OwnershipFilter } from "@/components/OwnershipFilterChips";
 import type { ListItemOrderByWithRelationInput } from "@/generated/prisma/models";
 
 /** A list is visible to its creator, or to anyone it's been explicitly shared with. */
-function visibleToUser(userId: string) {
+export function visibleToUser(userId: string) {
   return { OR: [{ createdById: userId }, { shares: { some: { userId } } }] };
 }
 
@@ -17,7 +17,7 @@ function whereForFilter(userId: string, filter: OwnershipFilter) {
 export function getLists(userId: string, filter: OwnershipFilter = "all") {
   return db.list.findMany({
     where: whereForFilter(userId, filter),
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ position: "asc" }, { createdAt: "desc" }],
     include: { _count: { select: { items: true } } },
   });
 }

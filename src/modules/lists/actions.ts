@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import * as z from "zod";
 import { db } from "@/lib/db";
 import { verifySession } from "@/lib/auth/dal";
-import { canAccessList } from "./queries";
+import { canAccessList, visibleToUser } from "./queries";
 import { LIST_KINDS, RESET_INTERVAL_DAYS, type ListKind } from "./types";
 
 export type ActionState = { error: string } | undefined;
@@ -32,8 +32,13 @@ export async function createList(_prevState: ActionState, formData: FormData): P
   // value, but spelling it out here means creation doesn't quietly depend
   // on that staying in sync.
   const defaultKind: ListKind = "shopping";
+  // Lists index sorts by position ascending — one below the lowest position
+  // this user can currently see puts a new list at the top, matching the
+  // old newest-first default.
+  const { _min } = await db.list.aggregate({ where: visibleToUser(session.userId), _min: { position: true } });
+  const position = (_min.position ?? 0) - 1;
   const list = await db.list.create({
-    data: { title: parsed.data.title, createdById: session.userId, kind: defaultKind },
+    data: { title: parsed.data.title, createdById: session.userId, kind: defaultKind, position },
   });
   revalidatePath("/lists");
   redirect(`/lists/${list.id}`);
@@ -45,6 +50,31 @@ export async function deleteList(listId: string) {
   await db.list.delete({ where: { id: listId } });
   revalidatePath("/lists");
   redirect("/lists");
+}
+
+/**
+ * Persists a drag-reordered lists index (mobile touch-and-drag, same
+ * pattern as reorderItems). The index can be showing a filtered subset
+ * (mine/shared/all — see OwnershipFilterChips), so this only reassigns
+ * positions *among the ids given*: it takes their current position values
+ * as a set and redistributes that same set across them in the new order,
+ * rather than renumbering 0..N. That leaves any list outside the current
+ * filter exactly where it was, interleaved correctly either way.
+ */
+export async function reorderLists(orderedIds: string[]) {
+  const session = await verifySession();
+  const lists = await db.list.findMany({
+    where: { id: { in: orderedIds }, ...visibleToUser(session.userId) },
+    select: { id: true, position: true },
+  });
+  if (lists.length !== orderedIds.length) return;
+
+  const positions = lists.map((l) => l.position).sort((a, b) => a - b);
+
+  await db.$transaction(
+    orderedIds.map((id, i) => db.list.update({ where: { id }, data: { position: positions[i] } })),
+  );
+  revalidatePath("/lists");
 }
 
 /** A user's primary list is their own preference (User.primaryListId) — setting it is just an overwrite. */

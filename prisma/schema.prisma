@@ -46,6 +46,11 @@ model List {
   // Null = no auto-reset. Reconciled lazily on read — see
   // resetStaleShoppingItems in queries.ts — not a background job.
   resetIntervalDays Int?
+  // Manual drag order on the lists index page (see reorderLists in
+  // actions.ts) — lower sorts first. Not scoped per-viewer: a list's
+  // position is shared by everyone it's visible to, same as its title or
+  // kind, consistent with sharing being full-edit elsewhere in this app.
+  position          Int      @default(0)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
