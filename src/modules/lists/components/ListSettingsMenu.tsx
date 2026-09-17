@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { Settings } from "lucide-react";
-import { setListKind, setListResetInterval } from "../actions";
+import { Settings, Trash2 } from "lucide-react";
+import { setListKind, setListResetInterval, deleteList } from "../actions";
 import { LIST_KINDS, LIST_KIND_LABELS, RESET_INTERVAL_OPTIONS, type ListKind } from "../types";
 
 /**
@@ -16,12 +16,16 @@ import { LIST_KINDS, LIST_KIND_LABELS, RESET_INTERVAL_OPTIONS, type ListKind } f
  */
 export function ListSettingsMenu({
   listId,
+  title,
   kind,
   resetIntervalDays,
+  totalCount,
 }: {
   listId: string;
+  title: string;
   kind: ListKind;
   resetIntervalDays: number | null;
+  totalCount: number;
 }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -106,6 +110,22 @@ export function ListSettingsMenu({
                 </select>
               </label>
             )}
+            <div className="border-t border-white/10 pt-3">
+              <button
+                type="button"
+                onClick={() => {
+                  const itemPhrase = `${totalCount} item${totalCount === 1 ? "" : "s"}`;
+                  if (confirm(`Delete "${title}" and its ${itemPhrase}? This can't be undone.`)) {
+                    startTransition(() => deleteList(listId));
+                  }
+                }}
+                disabled={isPending}
+                className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 disabled:opacity-50"
+              >
+                <Trash2 className="size-4" strokeWidth={1.75} />
+                Delete list
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { forwardRef, useTransition, type PointerEventHandler } from "react";
-import { Trash2, CheckSquare, Square, GripVertical } from "lucide-react";
-import { deleteList, setPrimaryList } from "../actions";
+import { CheckSquare, Square, GripVertical } from "lucide-react";
+import { setPrimaryList } from "../actions";
 
 type DragHandleProps = {
   onPointerDown: PointerEventHandler<HTMLButtonElement>;
@@ -51,19 +51,6 @@ export const ListCard = forwardRef<HTMLDivElement, ListCardProps>(function ListC
         </p>
       </Link>
       <div className="flex items-center gap-3">
-        <button
-          onClick={() => {
-            if (confirm(`Delete "${list.title}"? This can't be undone.`)) {
-              startTransition(() => deleteList(list.id));
-            }
-          }}
-          disabled={isPending}
-          aria-label={`Delete ${list.title}`}
-          title="Delete list"
-          className="text-white/40 hover:text-red-400 disabled:opacity-50"
-        >
-          <Trash2 className="size-5" strokeWidth={1.75} />
-        </button>
         {showPrimaryToggle && (
           <button
             onClick={() => startTransition(() => setPrimaryList(list.id, !isPrimary))}

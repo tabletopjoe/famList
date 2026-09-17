@@ -34,6 +34,7 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
       <DeleteModeProvider>
         <ListControls
           listId={list.id}
+          title={list.title}
           kind={list.kind as ListKind}
           resetIntervalDays={list.resetIntervalDays}
           doneCount={list.items.filter((item) => item.isDone).length}

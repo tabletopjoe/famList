@@ -17,12 +17,14 @@ import type { ListKind } from "../types";
  */
 export function ListControls({
   listId,
+  title,
   kind,
   resetIntervalDays,
   doneCount,
   totalCount,
 }: {
   listId: string;
+  title: string;
   kind: ListKind;
   resetIntervalDays: number | null;
   doneCount: number;
@@ -61,7 +63,13 @@ export function ListControls({
       >
         <RefreshCw className="size-4" strokeWidth={1.75} />
       </button>
-      <ListSettingsMenu listId={listId} kind={kind} resetIntervalDays={resetIntervalDays} />
+      <ListSettingsMenu
+        listId={listId}
+        title={title}
+        kind={kind}
+        resetIntervalDays={resetIntervalDays}
+        totalCount={totalCount}
+      />
     </div>
   );
 }
