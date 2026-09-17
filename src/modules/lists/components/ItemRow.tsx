@@ -25,6 +25,8 @@ type ItemRowProps = {
   };
   canMoveUp: boolean;
   canMoveDown: boolean;
+  /** Tapping the item's text space opens ItemEditForm for it (see ItemList). */
+  onEdit: () => void;
   /** Mobile touch-and-drag (see ItemList) — omitted on desktop, where the chevrons above still do the job. */
   dragHandleProps?: DragHandleProps;
   isDragging?: boolean;
@@ -32,7 +34,7 @@ type ItemRowProps = {
 };
 
 export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
-  { listId, kind, item, canMoveUp, canMoveDown, dragHandleProps, isDragging, dragOffset = 0 },
+  { listId, kind, item, canMoveUp, canMoveDown, onEdit, dragHandleProps, isDragging, dragOffset = 0 },
   ref,
 ) {
   const [isPending, startTransition] = useTransition();
@@ -57,8 +59,8 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
       style={isDragging ? { transform: `translateY(${dragOffset}px)`, position: "relative", zIndex: 10 } : undefined}
       className={`flex items-center gap-3 py-2 ${isDragging ? "bg-card-background" : ""}`}
     >
-      {showCheckbox ? (
-        <label className="flex flex-1 items-center gap-3 cursor-pointer">
+      <div className="flex flex-1 items-center gap-3">
+        {showCheckbox && (
           <input
             type="checkbox"
             checked={item.isDone}
@@ -69,13 +71,14 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
                 toggleItem(listId, item.id, checked);
               });
             }}
-            className="size-4 accent-[#F4A261]/85"
+            className="size-4 shrink-0 accent-[#F4A261]/85"
           />
+        )}
+        {/* The text space between the checkbox and the icon group opens the edit form. */}
+        <button type="button" onClick={onEdit} className="flex flex-1 cursor-pointer items-center py-1 text-left">
           {labelSpan}
-        </label>
-      ) : (
-        <div className="flex flex-1 items-center gap-3">{labelSpan}</div>
-      )}
+        </button>
+      </div>
       <div className="flex items-center gap-2">
         {deleteMode ? (
           <button

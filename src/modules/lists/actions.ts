@@ -156,6 +156,45 @@ export async function addItem(listId: string, _prevState: ActionState, formData:
   revalidatePath(`/lists/${listId}`);
 }
 
+const UpdateItemSchema = z.object({
+  label: z.string().trim().min(1, { error: "Enter an item name." }).max(200),
+  quantity: z.string().trim().max(60).nullable(),
+  notes: z.string().trim().max(1000).nullable(),
+  link: z.string().trim().max(500).nullable(),
+});
+
+/** "" (an emptied field) becomes null here rather than being left out of the update, so clearing a field in the edit form actually clears it. */
+function emptyToNull(value: FormDataEntryValue | null): string | null {
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+export async function updateItem(
+  listId: string,
+  itemId: string,
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const session = await verifySession();
+  if (!(await canAccessList(session.userId, listId))) {
+    return { error: "You don't have access to this list." };
+  }
+  const parsed = UpdateItemSchema.safeParse({
+    label: formData.get("label"),
+    quantity: emptyToNull(formData.get("quantity")),
+    notes: emptyToNull(formData.get("notes")),
+    link: emptyToNull(formData.get("link")),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Enter a valid item." };
+  }
+
+  await db.listItem.updateMany({
+    where: { id: itemId, listId },
+    data: parsed.data,
+  });
+  revalidatePath(`/lists/${listId}`);
+}
+
 export async function toggleItem(listId: string, itemId: string, isDone: boolean) {
   const session = await verifySession();
   await requireListAccess(session.userId, listId);

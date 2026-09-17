@@ -3,12 +3,15 @@
 import { useRef, useState, useTransition, type PointerEvent as ReactPointerEvent } from "react";
 import { reorderItems } from "../actions";
 import type { ListKind } from "../types";
+import { ItemEditForm } from "./ItemEditForm";
 import { ItemRow } from "./ItemRow";
 
 type Item = {
   id: string;
   label: string;
   quantity: string | null;
+  notes: string | null;
+  link: string | null;
   isDone: boolean;
   isRecurring: boolean;
 };
@@ -37,6 +40,7 @@ export function ItemList({ listId, items, kind }: { listId: string; items: Item[
   const [, startTransition] = useTransition();
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const rowRefs = useRef(new Map<string, HTMLLIElement>());
   const drag = useRef<DragState | null>(null);
 
@@ -94,36 +98,58 @@ export function ItemList({ listId, items, kind }: { listId: string; items: Item[
     });
   }
 
+  // While editing, the list collapses down to just that one row (at the
+  // top) with the edit form beneath it — everything else stays hidden
+  // until Save or Cancel closes it.
+  const visibleIds = editingId ? order.filter((id) => id === editingId) : order;
+
   return (
-    <ul className="divide-y divide-black/10 dark:divide-white/15">
-      {order.map((id, index) => {
-        const item = itemsById.get(id);
-        if (!item) return null;
-        const prev = itemsById.get(order[index - 1] ?? "");
-        const next = itemsById.get(order[index + 1] ?? "");
-        return (
-          <ItemRow
-            key={id}
-            ref={(el) => {
-              if (el) rowRefs.current.set(id, el);
-              else rowRefs.current.delete(id);
-            }}
-            listId={listId}
-            item={item}
-            kind={kind}
-            canMoveUp={!!prev && prev.isDone === item.isDone}
-            canMoveDown={!!next && next.isDone === item.isDone}
-            isDragging={draggingId === id}
-            dragOffset={draggingId === id ? dragOffset : 0}
-            dragHandleProps={{
-              onPointerDown: (e) => handlePointerDown(e, id),
-              onPointerMove: handlePointerMove,
-              onPointerUp: endDrag,
-              onPointerCancel: endDrag,
-            }}
-          />
-        );
-      })}
-    </ul>
+    <>
+      <ul className="divide-y divide-black/10 dark:divide-white/15">
+        {visibleIds.map((id) => {
+          const item = itemsById.get(id);
+          if (!item) return null;
+          const index = order.indexOf(id);
+          const prev = itemsById.get(order[index - 1] ?? "");
+          const next = itemsById.get(order[index + 1] ?? "");
+          return (
+            <ItemRow
+              key={id}
+              ref={(el) => {
+                if (el) rowRefs.current.set(id, el);
+                else rowRefs.current.delete(id);
+              }}
+              listId={listId}
+              item={item}
+              kind={kind}
+              canMoveUp={!!prev && prev.isDone === item.isDone}
+              canMoveDown={!!next && next.isDone === item.isDone}
+              onEdit={() => setEditingId(id)}
+              isDragging={draggingId === id}
+              dragOffset={draggingId === id ? dragOffset : 0}
+              dragHandleProps={{
+                onPointerDown: (e) => handlePointerDown(e, id),
+                onPointerMove: handlePointerMove,
+                onPointerUp: endDrag,
+                onPointerCancel: endDrag,
+              }}
+            />
+          );
+        })}
+      </ul>
+      {editingId &&
+        (() => {
+          const item = itemsById.get(editingId);
+          if (!item) return null;
+          return (
+            <ItemEditForm
+              listId={listId}
+              item={item}
+              onCancel={() => setEditingId(null)}
+              onSaved={() => setEditingId(null)}
+            />
+          );
+        })()}
+    </>
   );
 }
