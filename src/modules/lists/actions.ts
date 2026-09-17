@@ -182,3 +182,30 @@ export async function moveItem(listId: string, itemId: string, direction: "up" |
   await db.$transaction(order.map((id, position) => db.listItem.update({ where: { id }, data: { position } })));
   revalidatePath(`/lists/${listId}`);
 }
+
+/**
+ * Persists a full drag-reordered item list (mobile touch-and-drag). Trusts
+ * the client for the *order* but not the grouping: rejects anything that
+ * would move an item across the isDone boundary, since undone/done items
+ * must stay contiguous for itemsOrderBy (queries.ts) to keep displaying
+ * them as two blocks.
+ */
+export async function reorderItems(listId: string, orderedIds: string[]) {
+  const session = await verifySession();
+  await requireListAccess(session.userId, listId);
+  const items = await db.listItem.findMany({ where: { listId }, select: { id: true, isDone: true } });
+  const byId = new Map(items.map((i) => [i.id, i]));
+  if (orderedIds.length !== items.length || !orderedIds.every((id) => byId.has(id))) return;
+
+  let sawDone = false;
+  for (const id of orderedIds) {
+    const isDone = byId.get(id)!.isDone;
+    if (isDone) sawDone = true;
+    else if (sawDone) return;
+  }
+
+  await db.$transaction(
+    orderedIds.map((id, position) => db.listItem.update({ where: { id }, data: { position } })),
+  );
+  revalidatePath(`/lists/${listId}`);
+}

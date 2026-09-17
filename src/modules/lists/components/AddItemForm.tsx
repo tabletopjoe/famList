@@ -12,7 +12,13 @@ export function AddItemForm({ listId }: { listId: string }) {
   const [state, formAction, pending] = useActionState(action, undefined);
 
   return (
-    <form action={formAction} className="flex flex-col gap-2">
+    <form
+      action={formAction}
+      // Mobile: pinned along the bottom of the screen for one-thumb reach,
+      // full-bleed regardless of <main>'s side padding. Desktop/tablet (md:)
+      // reverts to sitting in normal flow above the item list, unchanged.
+      className="flex flex-col gap-2 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-30 max-md:border-t max-md:border-white/15 max-md:bg-background max-md:px-4 max-md:pt-3 max-md:pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:static"
+    >
       <div className="flex gap-2">
         <input
           name="label"

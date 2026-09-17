@@ -1,9 +1,16 @@
 "use client";
 
-import { useTransition } from "react";
-import { ChevronUp, ChevronDown, Trash2 } from "lucide-react";
+import { forwardRef, useTransition, type PointerEventHandler } from "react";
+import { ChevronUp, ChevronDown, GripVertical, Trash2 } from "lucide-react";
 import { toggleItem, deleteItem, moveItem } from "../actions";
 import { useDeleteMode } from "./DeleteModeContext";
+
+type DragHandleProps = {
+  onPointerDown: PointerEventHandler<HTMLButtonElement>;
+  onPointerMove: PointerEventHandler<HTMLButtonElement>;
+  onPointerUp: PointerEventHandler<HTMLButtonElement>;
+  onPointerCancel: PointerEventHandler<HTMLButtonElement>;
+};
 
 type ItemRowProps = {
   listId: string;
@@ -15,16 +22,27 @@ type ItemRowProps = {
   };
   canMoveUp: boolean;
   canMoveDown: boolean;
+  /** Mobile touch-and-drag (see ItemList) — omitted on desktop, where the chevrons above still do the job. */
+  dragHandleProps?: DragHandleProps;
+  isDragging?: boolean;
+  dragOffset?: number;
 };
 
-export function ItemRow({ listId, item, canMoveUp, canMoveDown }: ItemRowProps) {
+export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
+  { listId, item, canMoveUp, canMoveDown, dragHandleProps, isDragging, dragOffset = 0 },
+  ref,
+) {
   const [isPending, startTransition] = useTransition();
   const { deleteMode } = useDeleteMode();
   const iconButtonClass =
     "text-black/40 hover:text-black/70 disabled:opacity-30 disabled:hover:text-black/40 dark:text-white/40 dark:hover:text-white/70 dark:disabled:hover:text-white/40";
 
   return (
-    <li className="flex items-center gap-3 py-2">
+    <li
+      ref={ref}
+      style={isDragging ? { transform: `translateY(${dragOffset}px)`, position: "relative", zIndex: 10 } : undefined}
+      className={`flex items-center gap-3 py-2 ${isDragging ? "bg-card-background" : ""}`}
+    >
       <label className="flex flex-1 items-center gap-3 cursor-pointer">
         <input
           type="checkbox"
@@ -56,27 +74,42 @@ export function ItemRow({ listId, item, canMoveUp, canMoveDown }: ItemRowProps) 
           </button>
         ) : (
           <>
+            {/* Desktop/tablet: up/down chevrons. */}
+            <div className="hidden items-center gap-2 md:flex">
+              <button
+                onClick={() => startTransition(() => moveItem(listId, item.id, "up"))}
+                disabled={isPending || !canMoveUp}
+                aria-label={`Move ${item.label} up`}
+                title="Move up"
+                className={iconButtonClass}
+              >
+                <ChevronUp className="size-4" strokeWidth={1.75} />
+              </button>
+              <button
+                onClick={() => startTransition(() => moveItem(listId, item.id, "down"))}
+                disabled={isPending || !canMoveDown}
+                aria-label={`Move ${item.label} down`}
+                title="Move down"
+                className={iconButtonClass}
+              >
+                <ChevronDown className="size-4" strokeWidth={1.75} />
+              </button>
+            </div>
+            {/* Mobile: press-and-drag handle. touch-none stops the page from
+                scrolling under the finger once a drag starts, so pointermove
+                drives the reorder instead of native scroll. */}
             <button
-              onClick={() => startTransition(() => moveItem(listId, item.id, "up"))}
-              disabled={isPending || !canMoveUp}
-              aria-label={`Move ${item.label} up`}
-              title="Move up"
-              className={iconButtonClass}
+              type="button"
+              aria-label={`Reorder ${item.label}`}
+              title="Drag to reorder"
+              className={`touch-none cursor-grab select-none active:cursor-grabbing md:hidden ${iconButtonClass}`}
+              {...dragHandleProps}
             >
-              <ChevronUp className="size-4" strokeWidth={1.75} />
-            </button>
-            <button
-              onClick={() => startTransition(() => moveItem(listId, item.id, "down"))}
-              disabled={isPending || !canMoveDown}
-              aria-label={`Move ${item.label} down`}
-              title="Move down"
-              className={iconButtonClass}
-            >
-              <ChevronDown className="size-4" strokeWidth={1.75} />
+              <GripVertical className="size-4" strokeWidth={1.75} />
             </button>
           </>
         )}
       </div>
     </li>
   );
-}
+});

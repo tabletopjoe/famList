@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { getListWithItems } from "@/modules/lists/queries";
 import { AddItemForm } from "@/modules/lists/components/AddItemForm";
-import { ItemRow } from "@/modules/lists/components/ItemRow";
+import { ItemList } from "@/modules/lists/components/ItemList";
 import { ListControls } from "@/modules/lists/components/ListControls";
 import { DeleteModeProvider } from "@/modules/lists/components/DeleteModeContext";
 import type { ListKind } from "@/modules/lists/types";
@@ -19,7 +19,7 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
   }
 
   return (
-    <div className="-mt-4 space-y-3">
+    <div className="-mt-4 space-y-3 max-md:pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
       <div className="flex items-center gap-3">
         <Link
           href="/lists?view=all"
@@ -43,21 +43,7 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
         {list.items.length === 0 ? (
           <p className="text-sm text-black/60 dark:text-white/60">No items yet — add one above.</p>
         ) : (
-          <ul className="divide-y divide-black/10 dark:divide-white/15">
-            {list.items.map((item, index) => {
-              const prev = list.items[index - 1];
-              const next = list.items[index + 1];
-              return (
-                <ItemRow
-                  key={item.id}
-                  listId={list.id}
-                  item={item}
-                  canMoveUp={!!prev && prev.isDone === item.isDone}
-                  canMoveDown={!!next && next.isDone === item.isDone}
-                />
-              );
-            })}
-          </ul>
+          <ItemList listId={list.id} items={list.items} />
         )}
       </DeleteModeProvider>
     </div>
