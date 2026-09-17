@@ -13,7 +13,7 @@ type EditableItem = {
 };
 
 const fieldClass =
-  "flex-1 rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-sm text-white disabled:opacity-50";
+  "min-w-0 flex-1 rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-sm text-white disabled:opacity-50";
 
 /** Label and input side by side, for every field except Notes — keeps rows compact so Notes gets the leftover height. */
 function FieldRow({ id, label, children }: { id: string; label: string; children: ReactNode }) {
