@@ -26,10 +26,13 @@ export function ListCardList({
   lists,
   primaryListId,
   anyPrimary,
+  draggable,
 }: {
   lists: ListSummary[];
   primaryListId: string | null;
   anyPrimary: boolean;
+  /** Dragging only reorders List.position, which only the "custom" sort mode actually displays by — hide the handle otherwise. */
+  draggable: boolean;
 }) {
   const [order, setOrder] = useState(() => lists.map((l) => l.id));
   const [prevLists, setPrevLists] = useState(lists);
@@ -109,12 +112,16 @@ export function ListCardList({
             anyPrimary={anyPrimary}
             isDragging={draggingId === id}
             dragOffset={draggingId === id ? dragOffset : 0}
-            dragHandleProps={{
-              onPointerDown: (e) => handlePointerDown(e, id),
-              onPointerMove: handlePointerMove,
-              onPointerUp: endDrag,
-              onPointerCancel: endDrag,
-            }}
+            dragHandleProps={
+              draggable
+                ? {
+                    onPointerDown: (e) => handlePointerDown(e, id),
+                    onPointerMove: handlePointerMove,
+                    onPointerUp: endDrag,
+                    onPointerCancel: endDrag,
+                  }
+                : undefined
+            }
           />
         );
       })}

@@ -66,16 +66,20 @@ export const ListCard = forwardRef<HTMLDivElement, ListCardProps>(function ListC
             )}
           </button>
         )}
-        {/* Rightmost: press-and-drag handle, same touch-reorder pattern as ItemRow. */}
-        <button
-          type="button"
-          aria-label={`Reorder ${list.title}`}
-          title="Drag to reorder"
-          className="touch-none cursor-grab select-none px-2 text-white/40 hover:text-white/70 active:cursor-grabbing disabled:opacity-30"
-          {...dragHandleProps}
-        >
-          <GripVertical className="size-5" strokeWidth={1.75} />
-        </button>
+        {/* Rightmost: press-and-drag handle, same touch-reorder pattern as
+            ItemRow — hidden when a non-custom sort is active (see
+            ListCardList), since dragging wouldn't have any visible effect. */}
+        {dragHandleProps && (
+          <button
+            type="button"
+            aria-label={`Reorder ${list.title}`}
+            title="Drag to reorder"
+            className="touch-none cursor-grab select-none px-2 text-white/40 hover:text-white/70 active:cursor-grabbing disabled:opacity-30"
+            {...dragHandleProps}
+          >
+            <GripVertical className="size-5" strokeWidth={1.75} />
+          </button>
+        )}
       </div>
     </div>
   );

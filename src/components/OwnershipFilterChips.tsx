@@ -4,7 +4,7 @@ export type OwnershipFilter = "all" | "mine" | "shared";
 
 export const OWNERSHIP_FILTERS: OwnershipFilter[] = ["all", "mine", "shared"];
 
-const LABELS: Record<OwnershipFilter, string> = {
+export const OWNERSHIP_FILTER_LABELS: Record<OwnershipFilter, string> = {
   all: "Everyone I can see",
   mine: "Mine",
   shared: "Shared with me",
@@ -38,7 +38,7 @@ export function OwnershipFilterChips({
             current === filter ? "bg-white/15 text-white" : "text-white/60 hover:bg-white/10 hover:text-white"
           }`}
         >
-          {LABELS[filter]}
+          {OWNERSHIP_FILTER_LABELS[filter]}
         </Link>
       ))}
     </div>

@@ -22,3 +22,23 @@ export const RESET_INTERVAL_OPTIONS = RESET_INTERVAL_DAYS.map((days) => ({
   days,
   label: `${days} day${days === 1 ? "" : "s"}`,
 }));
+
+/**
+ * Lists-index sort modes. "custom" is drag order (List.position, see
+ * reorderLists in actions.ts) and is the default — the other three are
+ * one-off query sorts with no persisted order of their own.
+ */
+export const LIST_SORTS = ["custom", "name", "created", "kind"] as const;
+
+export type ListSort = (typeof LIST_SORTS)[number];
+
+export const LIST_SORT_LABELS: Record<ListSort, string> = {
+  custom: "Custom",
+  name: "Name",
+  created: "Created",
+  kind: "Type",
+};
+
+export function parseListSort(raw: string | undefined): ListSort {
+  return (LIST_SORTS as readonly string[]).includes(raw ?? "") ? (raw as ListSort) : "custom";
+}

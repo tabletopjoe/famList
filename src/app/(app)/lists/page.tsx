@@ -3,7 +3,9 @@ import { getCurrentUser } from "@/lib/auth/dal";
 import { getLists, getPrimaryList } from "@/modules/lists/queries";
 import { CreateListForm } from "@/modules/lists/components/CreateListForm";
 import { ListCardList } from "@/modules/lists/components/ListCardList";
-import { OwnershipFilterChips, parseOwnershipFilter } from "@/components/OwnershipFilterChips";
+import { ListsFilterSortBar } from "@/modules/lists/components/ListsFilterSortBar";
+import { parseOwnershipFilter } from "@/components/OwnershipFilterChips";
+import { parseListSort } from "@/modules/lists/types";
 
 const EMPTY_MESSAGE = {
   all: "No lists yet — create one above.",
@@ -14,11 +16,13 @@ const EMPTY_MESSAGE = {
 export default async function ListsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string; filter?: string }>;
+  searchParams: Promise<{ view?: string; filter?: string; sort?: string; panel?: string }>;
 }) {
   const user = await getCurrentUser();
-  const { view, filter: rawFilter } = await searchParams;
+  const { view, filter: rawFilter, sort: rawSort, panel: rawPanel } = await searchParams;
   const filter = parseOwnershipFilter(rawFilter);
+  const sort = parseListSort(rawSort);
+  const panel = rawPanel === "sort" ? "sort" : "filter";
 
   // Default entry point: jump straight to the primary list, if one is set.
   // The top bar's "Lists" title links here with ?view=all to bypass this
@@ -30,20 +34,17 @@ export default async function ListsPage({
     }
   }
 
-  const lists = await getLists(user.id, filter);
+  const lists = await getLists(user.id, filter, sort);
   const anyPrimary = user.primaryListId !== null;
 
   return (
     <div className="space-y-6">
       <CreateListForm />
-      <OwnershipFilterChips
-        current={filter}
-        hrefFor={(f) => `/lists?view=all${f === "all" ? "" : `&filter=${f}`}`}
-      />
+      <ListsFilterSortBar panel={panel} filter={filter} sort={sort} />
       {lists.length === 0 ? (
         <p className="text-sm text-white/60">{EMPTY_MESSAGE[filter]}</p>
       ) : (
-        <ListCardList lists={lists} primaryListId={user.primaryListId} anyPrimary={anyPrimary} />
+        <ListCardList lists={lists} primaryListId={user.primaryListId} anyPrimary={anyPrimary} draggable={sort === "custom"} />
       )}
     </div>
   );
