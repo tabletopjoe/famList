@@ -64,9 +64,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             href="/admin"
             aria-label="Admin"
             title="Admin"
-            className="fixed bottom-4 right-4 z-40 flex size-10 items-center justify-center rounded-full bg-white/10 text-white/50 backdrop-blur-sm transition-colors hover:bg-white/20 hover:text-white/90"
+            className="fixed bottom-4 right-4 z-40 flex size-5 items-center justify-center rounded-full bg-white/10 text-white/50 backdrop-blur-sm transition-colors hover:bg-white/20 hover:text-white/90"
           >
-            <TreePine className="size-5" strokeWidth={1.75} />
+            <TreePine className="size-2.5" strokeWidth={1.75} />
           </Link>
         )}
       </TopBarSlotProvider>

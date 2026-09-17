@@ -105,7 +105,7 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
               className={`touch-none cursor-grab select-none active:cursor-grabbing md:hidden ${iconButtonClass}`}
               {...dragHandleProps}
             >
-              <GripVertical className="size-4" strokeWidth={1.75} />
+              <GripVertical className="size-12" strokeWidth={1.75} />
             </button>
           </>
         )}
