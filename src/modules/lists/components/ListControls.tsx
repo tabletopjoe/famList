@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { setAllItemsDone } from "../actions";
 import { useDeleteMode } from "./DeleteModeContext";
+import { useItemEdit } from "./ItemEditContext";
 import { ListSettingsMenu } from "./ListSettingsMenu";
 import type { ListKind } from "../types";
 
@@ -31,11 +32,17 @@ export function ListControls({
   totalCount: number;
 }) {
   const { deleteMode, toggle } = useDeleteMode();
+  const { editingId } = useItemEdit();
   const [isPending, startTransition] = useTransition();
 
   // Majority-checked -> uncheck all; otherwise (majority unchecked, or an
   // even split) -> check all.
   const target = doneCount > totalCount - doneCount ? false : true;
+
+  // Editing an item collapses the list down to just that row + the edit
+  // form — these controls don't apply to anything visible while that's up,
+  // and hiding them gives the edit form's Notes field more room.
+  if (editingId) return null;
 
   return (
     <div className="relative flex items-center gap-2">

@@ -7,6 +7,7 @@ import { AddItemForm } from "@/modules/lists/components/AddItemForm";
 import { ItemList } from "@/modules/lists/components/ItemList";
 import { ListControls } from "@/modules/lists/components/ListControls";
 import { DeleteModeProvider } from "@/modules/lists/components/DeleteModeContext";
+import { ItemEditProvider } from "@/modules/lists/components/ItemEditContext";
 import type { ListKind } from "@/modules/lists/types";
 
 export default async function ListDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -32,20 +33,22 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
         <h1 className="min-w-0 flex-1 truncate text-2xl font-semibold">{list.title}</h1>
       </div>
       <DeleteModeProvider>
-        <ListControls
-          listId={list.id}
-          title={list.title}
-          kind={list.kind as ListKind}
-          resetIntervalDays={list.resetIntervalDays}
-          doneCount={list.items.filter((item) => item.isDone).length}
-          totalCount={list.items.length}
-        />
-        <AddItemForm listId={list.id} />
-        {list.items.length === 0 ? (
-          <p className="text-sm text-black/60 dark:text-white/60">No items yet — add one above.</p>
-        ) : (
-          <ItemList listId={list.id} items={list.items} kind={list.kind as ListKind} />
-        )}
+        <ItemEditProvider>
+          <ListControls
+            listId={list.id}
+            title={list.title}
+            kind={list.kind as ListKind}
+            resetIntervalDays={list.resetIntervalDays}
+            doneCount={list.items.filter((item) => item.isDone).length}
+            totalCount={list.items.length}
+          />
+          <AddItemForm listId={list.id} />
+          {list.items.length === 0 ? (
+            <p className="text-sm text-black/60 dark:text-white/60">No items yet — add one above.</p>
+          ) : (
+            <ItemList listId={list.id} items={list.items} kind={list.kind as ListKind} />
+          )}
+        </ItemEditProvider>
       </DeleteModeProvider>
     </div>
   );

@@ -4,6 +4,7 @@ import { useRef, useState, useTransition, type PointerEvent as ReactPointerEvent
 import { reorderItems } from "../actions";
 import type { ListKind } from "../types";
 import { ItemEditForm } from "./ItemEditForm";
+import { useItemEdit } from "./ItemEditContext";
 import { ItemRow } from "./ItemRow";
 
 type Item = {
@@ -40,7 +41,7 @@ export function ItemList({ listId, items, kind }: { listId: string; items: Item[
   const [, startTransition] = useTransition();
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const { editingId, setEditingId } = useItemEdit();
   const rowRefs = useRef(new Map<string, HTMLLIElement>());
   const drag = useRef<DragState | null>(null);
 
@@ -144,6 +145,7 @@ export function ItemList({ listId, items, kind }: { listId: string; items: Item[
           return (
             <ItemEditForm
               listId={listId}
+              kind={kind}
               item={item}
               onCancel={() => setEditingId(null)}
               onSaved={() => setEditingId(null)}
