@@ -145,6 +145,14 @@ export async function toggleItem(listId: string, itemId: string, isDone: boolean
   revalidatePath(`/lists/${listId}`);
 }
 
+/** Shopping-list items only (see ListItem.isRecurring in schema.prisma) — whether checking this off should auto-reset it later. */
+export async function setItemRecurring(listId: string, itemId: string, isRecurring: boolean) {
+  const session = await verifySession();
+  await requireListAccess(session.userId, listId);
+  await db.listItem.updateMany({ where: { id: itemId, listId }, data: { isRecurring } });
+  revalidatePath(`/lists/${listId}`);
+}
+
 export async function setAllItemsDone(listId: string, isDone: boolean) {
   const session = await verifySession();
   await requireListAccess(session.userId, listId);

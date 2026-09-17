@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition, type PointerEvent as ReactPointerEvent } from "react";
 import { reorderItems } from "../actions";
+import type { ListKind } from "../types";
 import { ItemRow } from "./ItemRow";
 
 type Item = {
@@ -9,6 +10,7 @@ type Item = {
   label: string;
   quantity: string | null;
   isDone: boolean;
+  isRecurring: boolean;
 };
 
 type DragState = {
@@ -19,7 +21,7 @@ type DragState = {
   groupEnd: number;
 };
 
-export function ItemList({ listId, items }: { listId: string; items: Item[] }) {
+export function ItemList({ listId, items, kind }: { listId: string; items: Item[]; kind: ListKind }) {
   const [order, setOrder] = useState(() => items.map((i) => i.id));
   // Re-sync to the server's order whenever the `items` prop changes
   // underneath us (a toggle, a delete, someone else editing the list) —
@@ -108,6 +110,7 @@ export function ItemList({ listId, items }: { listId: string; items: Item[] }) {
             }}
             listId={listId}
             item={item}
+            kind={kind}
             canMoveUp={!!prev && prev.isDone === item.isDone}
             canMoveDown={!!next && next.isDone === item.isDone}
             isDragging={draggingId === id}

@@ -53,7 +53,7 @@ const itemsOrderBy: ListItemOrderByWithRelationInput[] = [
 async function resetStaleShoppingItems(listId: string, resetIntervalDays: number): Promise<number> {
   const cutoff = new Date(Date.now() - resetIntervalDays * 24 * 60 * 60 * 1000);
   const { count } = await db.listItem.updateMany({
-    where: { listId, isDone: true, completedAt: { lte: cutoff } },
+    where: { listId, isDone: true, isRecurring: true, completedAt: { lte: cutoff } },
     data: { isDone: false, completedAt: null },
   });
   return count;

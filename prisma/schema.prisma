@@ -100,6 +100,11 @@ model ListItem {
   // restricted to that list kind.
   link        String?
   isDone      Boolean   @default(false)
+  // Shopping-list items only: whether checking this off should auto-reset
+  // it later (a staple like milk) vs. stay checked for good (a one-off).
+  // Meaningless outside "shopping" lists but stored per-item rather than
+  // derived, so it survives a list's kind changing back and forth.
+  isRecurring Boolean   @default(true)
   // When isDone last flipped true; cleared when it flips back to false.
   // Read against the parent List's resetIntervalDays to decide when a
   // shopping-list item is due to auto-reset.

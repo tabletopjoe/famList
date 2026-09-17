@@ -1,9 +1,10 @@
 "use client";
 
 import { forwardRef, useTransition, type PointerEventHandler } from "react";
-import { ChevronUp, ChevronDown, GripVertical, Trash2 } from "lucide-react";
-import { toggleItem, deleteItem, moveItem } from "../actions";
+import { ChevronUp, ChevronDown, Clock, GripVertical, Trash2 } from "lucide-react";
+import { toggleItem, deleteItem, moveItem, setItemRecurring } from "../actions";
 import { useDeleteMode } from "./DeleteModeContext";
+import type { ListKind } from "../types";
 
 type DragHandleProps = {
   onPointerDown: PointerEventHandler<HTMLButtonElement>;
@@ -14,11 +15,13 @@ type DragHandleProps = {
 
 type ItemRowProps = {
   listId: string;
+  kind: ListKind;
   item: {
     id: string;
     label: string;
     quantity: string | null;
     isDone: boolean;
+    isRecurring: boolean;
   };
   canMoveUp: boolean;
   canMoveDown: boolean;
@@ -29,7 +32,7 @@ type ItemRowProps = {
 };
 
 export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
-  { listId, item, canMoveUp, canMoveDown, dragHandleProps, isDragging, dragOffset = 0 },
+  { listId, kind, item, canMoveUp, canMoveDown, dragHandleProps, isDragging, dragOffset = 0 },
   ref,
 ) {
   const [isPending, startTransition] = useTransition();
@@ -37,30 +40,42 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
   const iconButtonClass =
     "text-black/40 hover:text-black/70 disabled:opacity-30 disabled:hover:text-black/40 dark:text-white/40 dark:hover:text-white/70 dark:disabled:hover:text-white/40";
 
+  // Only shopping lists track "done" day-to-day — everywhere else, isDone
+  // only matters while picking things to delete, so the checkbox stays
+  // hidden the rest of the time (see LIST_KINDS in types.ts).
+  const showCheckbox = kind === "shopping" || deleteMode;
+  const labelSpan = (
+    <span className={`flex-1 ${item.isDone ? "text-black/40 line-through dark:text-white/40" : ""}`}>
+      {item.label}
+      {item.quantity && <span className="text-black/50 dark:text-white/50"> · {item.quantity}</span>}
+    </span>
+  );
+
   return (
     <li
       ref={ref}
       style={isDragging ? { transform: `translateY(${dragOffset}px)`, position: "relative", zIndex: 10 } : undefined}
       className={`flex items-center gap-3 py-2 ${isDragging ? "bg-card-background" : ""}`}
     >
-      <label className="flex flex-1 items-center gap-3 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={item.isDone}
-          disabled={isPending}
-          onChange={(e) => {
-            const checked = e.target.checked;
-            startTransition(() => {
-              toggleItem(listId, item.id, checked);
-            });
-          }}
-          className="size-4 accent-[#F4A261]/85"
-        />
-        <span className={`flex-1 ${item.isDone ? "text-black/40 line-through dark:text-white/40" : ""}`}>
-          {item.label}
-          {item.quantity && <span className="text-black/50 dark:text-white/50"> · {item.quantity}</span>}
-        </span>
-      </label>
+      {showCheckbox ? (
+        <label className="flex flex-1 items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={item.isDone}
+            disabled={isPending}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              startTransition(() => {
+                toggleItem(listId, item.id, checked);
+              });
+            }}
+            className="size-4 accent-[#F4A261]/85"
+          />
+          {labelSpan}
+        </label>
+      ) : (
+        <div className="flex flex-1 items-center gap-3">{labelSpan}</div>
+      )}
       <div className="flex items-center gap-2">
         {deleteMode ? (
           <button
@@ -74,6 +89,25 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
           </button>
         ) : (
           <>
+            {/* Shopping lists only: recurring vs. one-off — governs whether
+                checking this off auto-resets it later (see
+                ListItem.isRecurring in schema.prisma). */}
+            {kind === "shopping" && (
+              <button
+                onClick={() => startTransition(() => setItemRecurring(listId, item.id, !item.isRecurring))}
+                disabled={isPending}
+                aria-pressed={item.isRecurring}
+                aria-label={item.isRecurring ? `Mark ${item.label} as a one-off item` : `Mark ${item.label} as recurring`}
+                title={item.isRecurring ? "Recurring — resets when checked off" : "One-off — stays checked"}
+                className={
+                  item.isRecurring
+                    ? `text-white/70 hover:text-white disabled:opacity-30`
+                    : `text-black/25 hover:text-black/50 disabled:opacity-30 dark:text-white/25 dark:hover:text-white/50`
+                }
+              >
+                <Clock className="size-4" strokeWidth={1.75} />
+              </button>
+            )}
             {/* Desktop/tablet: up/down chevrons. */}
             <div className="hidden items-center gap-2 md:flex">
               <button
