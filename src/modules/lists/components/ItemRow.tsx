@@ -102,10 +102,10 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
               type="button"
               aria-label={`Reorder ${item.label}`}
               title="Drag to reorder"
-              className={`touch-none cursor-grab select-none active:cursor-grabbing md:hidden ${iconButtonClass}`}
+              className={`touch-none cursor-grab select-none px-4 active:cursor-grabbing md:hidden ${iconButtonClass}`}
               {...dragHandleProps}
             >
-              <GripVertical className="size-12" strokeWidth={1.75} />
+              <GripVertical className="size-4" strokeWidth={1.75} />
             </button>
           </>
         )}
