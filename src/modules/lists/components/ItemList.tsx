@@ -15,7 +15,10 @@ type Item = {
   link: string | null;
   isDone: boolean;
   isRecurring: boolean;
+  categoryId: string | null;
 };
+
+type Category = { id: string; name: string };
 
 type DragState = {
   id: string;
@@ -25,7 +28,17 @@ type DragState = {
   groupEnd: number;
 };
 
-export function ItemList({ listId, items, kind }: { listId: string; items: Item[]; kind: ListKind }) {
+export function ItemList({
+  listId,
+  items,
+  kind,
+  categories,
+}: {
+  listId: string;
+  items: Item[];
+  kind: ListKind;
+  categories: Category[];
+}) {
   const [order, setOrder] = useState(() => items.map((i) => i.id));
   // Re-sync to the server's order whenever the `items` prop changes
   // underneath us (a toggle, a delete, someone else editing the list) —
@@ -142,6 +155,7 @@ export function ItemList({ listId, items, kind }: { listId: string; items: Item[
               listId={listId}
               kind={kind}
               item={item}
+              categories={categories}
               onCancel={() => setEditingId(null)}
               onSaved={() => setEditingId(null)}
             />

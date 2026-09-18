@@ -60,8 +60,27 @@ model List {
   // The (at most one) user this list is currently the default/primary for.
   primaryFor User? @relation("UserPrimaryList")
 
-  items  ListItem[]
-  shares ListShare[]
+  items      ListItem[]
+  shares     ListShare[]
+  categories Category[]
+}
+
+// Per-list, user-managed labels for grouping items (e.g. "Produce" on a
+// shopping list). Shopping and recipe lists get a handful of these
+// pre-seeded at creation (see PRESET_CATEGORIES in types.ts) since those
+// kinds have an obvious default set; other kinds start empty.
+model Category {
+  id       String @id @default(cuid())
+  name     String
+  // Manual drag order in the list settings menu — lower sorts first.
+  position Int    @default(0)
+
+  list   List   @relation(fields: [listId], references: [id], onDelete: Cascade)
+  listId String
+
+  items ListItem[]
+
+  @@unique([listId, name])
 }
 
 // Grants one user access to a list they didn't create — per-list, one-
@@ -119,6 +138,9 @@ model ListItem {
 
   list   List   @relation(fields: [listId], references: [id], onDelete: Cascade)
   listId String
+
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryId String?
 }
 
 model Contact {

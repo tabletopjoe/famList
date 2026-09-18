@@ -6,7 +6,7 @@ import * as z from "zod";
 import { db } from "@/lib/db";
 import { verifySession } from "@/lib/auth/dal";
 import { canAccessList, visibleToUser } from "./queries";
-import { LIST_KINDS, RESET_INTERVAL_DAYS } from "./types";
+import { LIST_KINDS, PRESET_CATEGORIES, RESET_INTERVAL_DAYS } from "./types";
 
 export type ActionState = { error: string } | undefined;
 
@@ -40,6 +40,14 @@ export async function createList(_prevState: ActionState, formData: FormData): P
   const list = await db.list.create({
     data: { title: parsed.data.title, createdById: session.userId, kind: parsed.data.kind, position },
   });
+
+  const presets = PRESET_CATEGORIES[parsed.data.kind];
+  if (presets) {
+    await db.category.createMany({
+      data: presets.map((name, i) => ({ listId: list.id, name, position: i })),
+    });
+  }
+
   revalidatePath("/lists");
   redirect(`/lists/${list.id}`);
 }
@@ -127,6 +135,48 @@ export async function setListResetInterval(listId: string, days: number | null) 
   revalidatePath(`/lists/${listId}`);
 }
 
+export type CreateCategoryResult = { error: string } | { category: { id: string; name: string } };
+
+/** Appends a new category at the end of the list's set — called immediately (not deferred to a Save button) from both the list settings panel and ItemEditForm's "add a category" row. */
+export async function createCategory(listId: string, rawName: string): Promise<CreateCategoryResult> {
+  const session = await verifySession();
+  await requireListAccess(session.userId, listId);
+  const name = rawName.trim();
+  if (!name) return { error: "Enter a category name." };
+  if (name.length > 60) return { error: "Category name is too long." };
+
+  const count = await db.category.count({ where: { listId } });
+  try {
+    const category = await db.category.create({ data: { listId, name, position: count } });
+    revalidatePath(`/lists/${listId}`);
+    return { category: { id: category.id, name: category.name } };
+  } catch {
+    // Unique [listId, name] violation — same name already exists on this list.
+    return { error: `"${name}" already exists.` };
+  }
+}
+
+/** Items pointing at the deleted category fall back to none (onDelete: SetNull), not deleted themselves. */
+export async function deleteCategory(listId: string, categoryId: string) {
+  const session = await verifySession();
+  await requireListAccess(session.userId, listId);
+  await db.category.deleteMany({ where: { id: categoryId, listId } });
+  revalidatePath(`/lists/${listId}`);
+}
+
+/** Same drag-reorder pattern as reorderItems/reorderLists — renumbers position to match the dropped order. */
+export async function reorderCategories(listId: string, orderedIds: string[]) {
+  const session = await verifySession();
+  await requireListAccess(session.userId, listId);
+  const categories = await db.category.findMany({ where: { listId }, select: { id: true } });
+  if (orderedIds.length !== categories.length || !categories.every((c) => orderedIds.includes(c.id))) return;
+
+  await db.$transaction(
+    orderedIds.map((id, position) => db.category.update({ where: { id }, data: { position } })),
+  );
+  revalidatePath(`/lists/${listId}`);
+}
+
 const AddItemSchema = z.object({
   label: z.string().trim().min(1, { error: "Enter an item name." }).max(200),
   quantity: z.string().trim().max(60).optional(),
@@ -161,6 +211,7 @@ const UpdateItemSchema = z.object({
   quantity: z.string().trim().max(60).nullable(),
   notes: z.string().trim().max(1000).nullable(),
   link: z.string().trim().max(500).nullable(),
+  categoryId: z.string().nullable(),
 });
 
 /** "" (an emptied field) becomes null here rather than being left out of the update, so clearing a field in the edit form actually clears it. */
@@ -183,14 +234,24 @@ export async function updateItem(
     quantity: emptyToNull(formData.get("quantity")),
     notes: emptyToNull(formData.get("notes")),
     link: emptyToNull(formData.get("link")),
+    categoryId: emptyToNull(formData.get("categoryId")),
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Enter a valid item." };
   }
 
+  // The select is populated from this list's own categories, but re-check
+  // rather than trust the submitted id outright — a category from another
+  // list, or one deleted since the form opened, silently falls back to none.
+  let categoryId = parsed.data.categoryId;
+  if (categoryId) {
+    const category = await db.category.findFirst({ where: { id: categoryId, listId }, select: { id: true } });
+    categoryId = category?.id ?? null;
+  }
+
   await db.listItem.updateMany({
     where: { id: itemId, listId },
-    data: parsed.data,
+    data: { ...parsed.data, categoryId },
   });
   revalidatePath(`/lists/${listId}`);
 }

@@ -15,6 +15,17 @@ export const LIST_KIND_LABELS: Record<ListKind, string> = {
   recipe: "Recipe list",
 };
 
+/**
+ * Seeded onto a list at creation time when it's one of these kinds (see
+ * createList in actions.ts) — a starting point, not a fixed set; users can
+ * rename, delete, or add to them freely afterward same as any other
+ * category. Kinds not listed here (collection, notes) start with none.
+ */
+export const PRESET_CATEGORIES: Partial<Record<ListKind, string[]>> = {
+  shopping: ["Produce", "Dairy & Eggs", "Meat & Seafood", "Bakery", "Frozen", "Pantry", "Household", "Other"],
+  recipe: ["Breakfast", "Lunch", "Dinner", "Dessert", "Snacks", "Drinks"],
+};
+
 /** Selectable day counts for List.resetIntervalDays — "Never" (null) isn't listed here, it's the absence of a selection. */
 export const RESET_INTERVAL_DAYS = [1, 2, 3, 4, 5, 6, 7, 14, 21, 30] as const;
 

@@ -23,6 +23,7 @@ export function ListControls({
   resetIntervalDays,
   doneCount,
   totalCount,
+  categories,
 }: {
   listId: string;
   title: string;
@@ -30,6 +31,7 @@ export function ListControls({
   resetIntervalDays: number | null;
   doneCount: number;
   totalCount: number;
+  categories: { id: string; name: string }[];
 }) {
   const { deleteMode, toggle } = useDeleteMode();
   const { editingId } = useItemEdit();
@@ -79,6 +81,7 @@ export function ListControls({
         kind={kind}
         resetIntervalDays={resetIntervalDays}
         totalCount={totalCount}
+        categories={categories}
       />
     </div>
   );

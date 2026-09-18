@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { Settings, Trash2 } from "lucide-react";
 import { setListKind, setListResetInterval, deleteList } from "../actions";
 import { LIST_KINDS, LIST_KIND_LABELS, RESET_INTERVAL_OPTIONS, type ListKind } from "../types";
+import { CollapsibleSection } from "@/components/CollapsibleSection";
+import { CategoryManager } from "./CategoryManager";
 
 /**
  * List type + (for shopping lists) auto-reset interval. Opens as a glassy
@@ -20,12 +22,14 @@ export function ListSettingsMenu({
   kind,
   resetIntervalDays,
   totalCount,
+  categories,
 }: {
   listId: string;
   title: string;
   kind: ListKind;
   resetIntervalDays: number | null;
   totalCount: number;
+  categories: { id: string; name: string }[];
 }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -71,7 +75,7 @@ export function ListSettingsMenu({
           className="absolute inset-x-0 top-full z-20 mt-2 rounded-lg border border-white/15 bg-card-background/70 p-4 shadow-xl backdrop-blur-md"
         >
           <p className="text-sm font-medium text-white">List settings</p>
-          <div className="mt-3 max-w-xs space-y-3">
+          <div className="mt-3 max-w-sm space-y-3">
             <label className="block text-sm text-white/70">
               List type
               <select
@@ -110,6 +114,11 @@ export function ListSettingsMenu({
                 </select>
               </label>
             )}
+            <div className="border-t border-white/10 pt-3">
+              <CollapsibleSection title="Categories">
+                <CategoryManager listId={listId} categories={categories} />
+              </CollapsibleSection>
+            </div>
             <div className="border-t border-white/10 pt-3">
               <button
                 type="button"

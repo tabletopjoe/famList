@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, type ReactNode } from "react";
-import { updateItem, type ActionState } from "../actions";
+import { useActionState, useState, useTransition, type ReactNode } from "react";
+import { Plus } from "lucide-react";
+import { updateItem, createCategory, type ActionState } from "../actions";
 import type { ListKind } from "../types";
 
 type EditableItem = {
@@ -10,7 +11,10 @@ type EditableItem = {
   quantity: string | null;
   notes: string | null;
   link: string | null;
+  categoryId: string | null;
 };
+
+type Category = { id: string; name: string };
 
 const fieldClass =
   "min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-background placeholder:text-background/40 disabled:opacity-50";
@@ -39,12 +43,14 @@ export function ItemEditForm({
   listId,
   kind,
   item,
+  categories,
   onCancel,
   onSaved,
 }: {
   listId: string;
   kind: ListKind;
   item: EditableItem;
+  categories: Category[];
   onCancel: () => void;
   onSaved: () => void;
 }) {
@@ -54,6 +60,79 @@ export function ItemEditForm({
     return result;
   };
   const [state, formAction, pending] = useActionState(action, undefined);
+
+  // Controlled (unlike the other fields) so adding a category can select it
+  // right away — Save still has to be pressed to actually persist the
+  // assignment, same as Name/Quantity/Notes/Link.
+  const [categoryId, setCategoryId] = useState(item.categoryId ?? "");
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [categoryError, setCategoryError] = useState<string | null>(null);
+  const [categoryPending, startCategoryTransition] = useTransition();
+
+  function handleAddCategory() {
+    const name = newCategoryName.trim();
+    if (!name) return;
+    startCategoryTransition(async () => {
+      const result = await createCategory(listId, name);
+      if ("error" in result) {
+        setCategoryError(result.error);
+      } else {
+        setCategoryError(null);
+        setCategoryId(result.category.id);
+        setNewCategoryName("");
+      }
+    });
+  }
+
+  const categoryField = (
+    <FieldRow id="item-edit-category" label="Category">
+      <select
+        id="item-edit-category"
+        name="categoryId"
+        value={categoryId}
+        onChange={(e) => setCategoryId(e.target.value)}
+        disabled={pending}
+        className={fieldClass}
+      >
+        <option value="" className="bg-white/80 text-background">
+          None
+        </option>
+        {categories.map((c) => (
+          <option key={c.id} value={c.id} className="bg-white/80 text-background">
+            {c.name}
+          </option>
+        ))}
+      </select>
+    </FieldRow>
+  );
+  const addCategoryRow = (
+    <div className="flex items-center gap-2">
+      <span className="w-20 shrink-0" aria-hidden />
+      <input
+        value={newCategoryName}
+        onChange={(e) => setNewCategoryName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            handleAddCategory();
+          }
+        }}
+        placeholder="New category"
+        disabled={categoryPending}
+        className={fieldClass}
+      />
+      <button
+        type="button"
+        onClick={handleAddCategory}
+        disabled={categoryPending}
+        aria-label="Add category"
+        title="Add category"
+        className="flex size-8 shrink-0 items-center justify-center rounded-md bg-foreground text-background disabled:opacity-50"
+      >
+        <Plus className="size-4" strokeWidth={2} />
+      </button>
+    </div>
+  );
 
   const nameField = (
     <FieldRow id="item-edit-label" label="Name">
@@ -116,6 +195,9 @@ export function ItemEditForm({
             {linkField}
           </>
         )}
+        {categoryField}
+        {addCategoryRow}
+        {categoryError && <p className="text-sm text-red-400">{categoryError}</p>}
         {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
         <div className="flex justify-end gap-2 border-t border-white/10 pt-3">
           <button

@@ -73,11 +73,16 @@ async function resetStaleShoppingItems(listId: string, resetIntervalDays: number
   return count;
 }
 
+const listWithItemsInclude = {
+  items: { orderBy: itemsOrderBy },
+  categories: { orderBy: { position: "asc" as const } },
+};
+
 /** Null both when the list doesn't exist and when it exists but isn't visible to this user — same as a 404 either way. */
 export async function getListWithItems(id: string, userId: string) {
   const list = await db.list.findFirst({
     where: { id, ...visibleToUser(userId) },
-    include: { items: { orderBy: itemsOrderBy } },
+    include: listWithItemsInclude,
   });
   if (!list) return null;
 
@@ -86,7 +91,7 @@ export async function getListWithItems(id: string, userId: string) {
     if (resetCount > 0) {
       // Re-fetch rather than patch the in-memory items: cheap at this
       // scale, and avoids re-deriving the isDone/position resort by hand.
-      return db.list.findFirst({ where: { id }, include: { items: { orderBy: itemsOrderBy } } });
+      return db.list.findFirst({ where: { id }, include: listWithItemsInclude });
     }
   }
 
