@@ -23,7 +23,7 @@ export const LIST_KIND_LABELS: Record<ListKind, string> = {
  */
 export const PRESET_CATEGORIES: Partial<Record<ListKind, string[]>> = {
   shopping: ["Produce", "Dairy & Eggs", "Meat & Seafood", "Bakery", "Frozen", "Pantry", "Household", "Other"],
-  recipe: ["Breakfast", "Lunch", "Dinner", "Dessert", "Snacks", "Drinks"],
+  recipe: ["Breakfast", "Dessert", "Entree", "Soup", "Sauces", "Sides"],
 };
 
 /** Selectable day counts for List.resetIntervalDays — "Never" (null) isn't listed here, it's the absence of a selection. */

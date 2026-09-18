@@ -116,16 +116,21 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
                 )}
               </button>
             )}
-            {/* Press-and-drag handle — the only reorder control now, on every breakpoint. */}
-            <button
-              type="button"
-              aria-label={`Reorder ${item.label}`}
-              title="Drag to reorder"
-              className={`touch-none cursor-grab select-none px-4 active:cursor-grabbing ${iconButtonClass}`}
-              {...dragHandleProps}
-            >
-              <Grip className="size-4" strokeWidth={1.75} />
-            </button>
+            {/* Press-and-drag handle — the only reorder control now, on every
+                breakpoint. Omitted when the list is sorted by category
+                (see ItemList), since dragging wouldn't have any visible
+                effect there. */}
+            {dragHandleProps && (
+              <button
+                type="button"
+                aria-label={`Reorder ${item.label}`}
+                title="Drag to reorder"
+                className={`touch-none cursor-grab select-none px-4 active:cursor-grabbing ${iconButtonClass}`}
+                {...dragHandleProps}
+              >
+                <Grip className="size-4" strokeWidth={1.75} />
+              </button>
+            )}
           </>
         )}
       </div>

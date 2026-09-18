@@ -1,20 +1,24 @@
 "use client";
 
 import { useTransition } from "react";
-import { RefreshCw, Trash2 } from "lucide-react";
+import { RefreshCw, Trash2, ArrowUpDown, ArrowDownAZ, ListOrdered } from "lucide-react";
 import { setAllItemsDone } from "../actions";
 import { useDeleteMode } from "./DeleteModeContext";
 import { useItemEdit } from "./ItemEditContext";
+import { useItemSort } from "./ItemSortContext";
 import { ListSettingsMenu } from "./ListSettingsMenu";
+import { chipClass } from "../chipClass";
 import type { ListKind } from "../types";
 
 /**
  * Row of per-list controls, sitting under the title/back-link row and
- * above the add-item form — currently the delete-mode toggle, the
- * check-all/uncheck-all toggle, and the list settings menu (which stays
- * last), with sort/filter icons still to come. `relative` here is
- * load-bearing: it's what ListSettingsMenu's overlay panel positions
- * itself against (see that component for why).
+ * above the add-item form. Normally the delete-mode toggle, the
+ * check-all/uncheck-all toggle, the list settings menu, and (rightmost) the
+ * sort-mode toggle. Toggling sort mode replaces all of those with the
+ * Custom/Category sort chips instead — the toggle icon stays put either way
+ * so you can flip back. `relative` here is load-bearing when the normal
+ * controls are showing: it's what ListSettingsMenu's overlay panel
+ * positions itself against (see that component for why).
  */
 export function ListControls({
   listId,
@@ -35,6 +39,7 @@ export function ListControls({
 }) {
   const { deleteMode, toggle } = useDeleteMode();
   const { editingId } = useItemEdit();
+  const { sortPanelOpen, toggleSortPanel, itemSort, setItemSort, categoryDir, setCategoryDir } = useItemSort();
   const [isPending, startTransition] = useTransition();
 
   // Majority-checked -> uncheck all; otherwise (majority unchecked, or an
@@ -45,6 +50,55 @@ export function ListControls({
   // form — these controls don't apply to anything visible while that's up,
   // and hiding them gives the edit form's Notes field more room.
   if (editingId) return null;
+
+  const sortToggleButton = (
+    <button
+      type="button"
+      onClick={toggleSortPanel}
+      aria-pressed={sortPanelOpen}
+      aria-label={sortPanelOpen ? "Hide sort options" : "Sort items"}
+      title={sortPanelOpen ? "Hide sort options" : "Sort items"}
+      className={`flex size-8 shrink-0 items-center justify-center rounded-md transition-colors ${
+        sortPanelOpen
+          ? "bg-white/15 text-white"
+          : "text-black/40 hover:text-black/70 dark:text-white/40 dark:hover:text-white/70"
+      }`}
+    >
+      <ArrowUpDown className="size-4" strokeWidth={1.75} />
+    </button>
+  );
+
+  if (sortPanelOpen) {
+    return (
+      <div className="flex items-center gap-2">
+        {sortToggleButton}
+        <div className="flex flex-nowrap gap-2 overflow-x-auto">
+          <button type="button" onClick={() => setItemSort("custom")} className={chipClass(itemSort === "custom")}>
+            Custom
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              // Tapping it again (already active) flips how the category
+              // groups themselves are ordered; picking it fresh starts at
+              // their own drag order.
+              if (itemSort === "category") setCategoryDir(categoryDir === "position" ? "alpha" : "position");
+              else setItemSort("category");
+            }}
+            className={chipClass(itemSort === "category")}
+          >
+            Category
+            {itemSort === "category" &&
+              (categoryDir === "alpha" ? (
+                <ArrowDownAZ className="size-3" strokeWidth={2} />
+              ) : (
+                <ListOrdered className="size-3" strokeWidth={2} />
+              ))}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex items-center gap-2">
@@ -83,6 +137,7 @@ export function ListControls({
         totalCount={totalCount}
         categories={categories}
       />
+      {sortToggleButton}
     </div>
   );
 }

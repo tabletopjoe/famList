@@ -5,6 +5,7 @@ import { reorderItems } from "../actions";
 import type { ListKind } from "../types";
 import { ItemEditForm } from "./ItemEditForm";
 import { useItemEdit } from "./ItemEditContext";
+import { useItemSort } from "./ItemSortContext";
 import { ItemRow } from "./ItemRow";
 
 type Item = {
@@ -55,6 +56,7 @@ export function ItemList({
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
   const { editingId, setEditingId } = useItemEdit();
+  const { itemSort, categoryDir } = useItemSort();
   const rowRefs = useRef(new Map<string, HTMLLIElement>());
   const drag = useRef<DragState | null>(null);
 
@@ -116,36 +118,77 @@ export function ItemList({
   // top) with the edit form beneath it — everything else stays hidden
   // until Save or Cancel closes it.
   const visibleIds = editingId ? order.filter((id) => id === editingId) : order;
+  // Dragging only reorders ListItem.position, which the category sort
+  // doesn't display by — hide the handle there, same reasoning as
+  // ListCardList's non-custom sorts.
+  const draggable = itemSort === "custom";
 
-  return (
-    <>
-      <ul className="divide-y divide-black/10 dark:divide-white/15">
-        {visibleIds.map((id) => {
-          const item = itemsById.get(id);
-          if (!item) return null;
-          return (
-            <ItemRow
-              key={id}
-              ref={(el) => {
-                if (el) rowRefs.current.set(id, el);
-                else rowRefs.current.delete(id);
-              }}
-              listId={listId}
-              item={item}
-              kind={kind}
-              onEdit={() => setEditingId(id)}
-              isDragging={draggingId === id}
-              dragOffset={draggingId === id ? dragOffset : 0}
-              dragHandleProps={{
+  function renderRow(id: string) {
+    const item = itemsById.get(id);
+    if (!item) return null;
+    return (
+      <ItemRow
+        key={id}
+        ref={(el) => {
+          if (el) rowRefs.current.set(id, el);
+          else rowRefs.current.delete(id);
+        }}
+        listId={listId}
+        item={item}
+        kind={kind}
+        onEdit={() => setEditingId(id)}
+        isDragging={draggingId === id}
+        dragOffset={draggingId === id ? dragOffset : 0}
+        dragHandleProps={
+          draggable
+            ? {
                 onPointerDown: (e) => handlePointerDown(e, id),
                 onPointerMove: handlePointerMove,
                 onPointerUp: endDrag,
                 onPointerCancel: endDrag,
-              }}
-            />
-          );
-        })}
-      </ul>
+              }
+            : undefined
+        }
+      />
+    );
+  }
+
+  // Groups items under their category (in the category's own drag order, or
+  // alphabetically — see ItemSortContext), uncategorized items last. Items
+  // within a group keep their existing relative order.
+  function groupByCategory() {
+    const orderedCategories =
+      categoryDir === "alpha" ? [...categories].sort((a, b) => a.name.localeCompare(b.name)) : categories;
+    const groups = orderedCategories.map((c) => ({ id: c.id as string | null, name: c.name, ids: [] as string[] }));
+    const groupById = new Map(groups.map((g) => [g.id, g]));
+    const uncategorized: string[] = [];
+
+    for (const id of order) {
+      const item = itemsById.get(id);
+      const group = item?.categoryId ? groupById.get(item.categoryId) : undefined;
+      if (group) group.ids.push(id);
+      else uncategorized.push(id);
+    }
+
+    const result = groups.filter((g) => g.ids.length > 0);
+    if (uncategorized.length > 0) result.push({ id: null, name: "Uncategorized", ids: uncategorized });
+    return result;
+  }
+
+  return (
+    <>
+      {!editingId && itemSort === "category" ? (
+        <div className="space-y-4">
+          {groupByCategory().map((group) => (
+            <div key={group.id ?? "uncategorized"}>
+              <p className="mb-1 text-xs font-medium tracking-wide text-white/40 uppercase">{group.name}</p>
+              <ul className="divide-y divide-black/10 dark:divide-white/15">{group.ids.map(renderRow)}</ul>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <ul className="divide-y divide-black/10 dark:divide-white/15">{visibleIds.map(renderRow)}</ul>
+      )}
       {editingId &&
         (() => {
           const item = itemsById.get(editingId);

@@ -2,14 +2,9 @@ import Link from "next/link";
 import { Filter, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { OWNERSHIP_FILTERS, OWNERSHIP_FILTER_LABELS, type OwnershipFilter } from "@/components/OwnershipFilterChips";
 import { LIST_SORTS, LIST_SORT_LABELS, DEFAULT_SORT_DIR, type ListSort, type ListSortDir } from "../types";
+import { chipClass } from "../chipClass";
 
 type Panel = "filter" | "sort";
-
-function chipClass(active: boolean) {
-  return `inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1 text-sm transition-colors ${
-    active ? "bg-white/15 text-white" : "text-white/60 hover:bg-white/10 hover:text-white"
-  }`;
-}
 
 function hrefFor(next: { panel: Panel; filter: OwnershipFilter; sort: ListSort; dir: ListSortDir }) {
   const params = new URLSearchParams({ view: "all" });
