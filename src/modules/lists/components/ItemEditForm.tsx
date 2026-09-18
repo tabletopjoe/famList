@@ -13,7 +13,7 @@ type EditableItem = {
 };
 
 const fieldClass =
-  "min-w-0 flex-1 rounded-md border border-black/15 bg-input-background px-2 py-1.5 text-sm text-background placeholder:text-background/40 disabled:opacity-50";
+  "min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-background placeholder:text-background/40 disabled:opacity-50";
 
 /** Label and input side by side, for every field except Notes — keeps rows compact so Notes gets the leftover height. */
 function FieldRow({ id, label, children }: { id: string; label: string; children: ReactNode }) {
@@ -88,7 +88,7 @@ export function ItemEditForm({
         defaultValue={item.notes ?? ""}
         disabled={pending}
         rows={maximizeNotes ? 10 : 3}
-        className="mt-1 w-full resize-none rounded-md border border-black/15 bg-input-background px-2 py-1.5 text-sm text-background placeholder:text-background/40 disabled:opacity-50"
+        className="mt-1 w-full resize-none rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-background placeholder:text-background/40 disabled:opacity-50"
       />
     </label>
   );

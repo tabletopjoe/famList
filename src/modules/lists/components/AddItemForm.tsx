@@ -24,12 +24,12 @@ export function AddItemForm({ listId }: { listId: string }) {
           name="label"
           placeholder="Add an item…"
           required
-          className="min-w-0 flex-1 rounded-md border border-black/15 bg-input-background px-3 py-2 text-sm text-background placeholder:text-background/40"
+          className="min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-3 py-2 text-sm text-background placeholder:text-background/40"
         />
         <input
           name="quantity"
           placeholder="Qty"
-          className="w-[38px] min-w-0 shrink-0 rounded-md border border-black/15 bg-input-background px-1 py-2 text-center text-sm text-background placeholder:text-background/40"
+          className="w-[38px] min-w-0 shrink-0 rounded-md border border-black/15 bg-white/80 px-1 py-2 text-center text-sm text-background placeholder:text-background/40"
         />
         <button
           type="submit"
