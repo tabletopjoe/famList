@@ -6,7 +6,7 @@ import * as z from "zod";
 import { db } from "@/lib/db";
 import { verifySession } from "@/lib/auth/dal";
 import { canAccessList, visibleToUser } from "./queries";
-import { LIST_KINDS, RESET_INTERVAL_DAYS, type ListKind } from "./types";
+import { LIST_KINDS, RESET_INTERVAL_DAYS } from "./types";
 
 export type ActionState = { error: string } | undefined;
 
@@ -19,26 +19,26 @@ async function requireListAccess(userId: string, listId: string) {
 
 const CreateListSchema = z.object({
   title: z.string().trim().min(1, { error: "Give the list a name." }).max(120),
+  // Falls back to shopping (the schema column's own default) if the type
+  // selector wasn't shown yet — see CreateListForm, which only renders it
+  // once the title field is focused.
+  kind: z.enum(LIST_KINDS).default("shopping"),
 });
 
 export async function createList(_prevState: ActionState, formData: FormData): Promise<ActionState> {
   const session = await verifySession();
-  const parsed = CreateListSchema.safeParse({ title: formData.get("title") });
+  const parsed = CreateListSchema.safeParse({ title: formData.get("title"), kind: formData.get("kind") || undefined });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Enter a valid title." };
   }
 
-  // New lists default to shopping — the schema column defaults to the same
-  // value, but spelling it out here means creation doesn't quietly depend
-  // on that staying in sync.
-  const defaultKind: ListKind = "shopping";
   // Lists index sorts by position ascending — one below the lowest position
   // this user can currently see puts a new list at the top, matching the
   // old newest-first default.
   const { _min } = await db.list.aggregate({ where: visibleToUser(session.userId), _min: { position: true } });
   const position = (_min.position ?? 0) - 1;
   const list = await db.list.create({
-    data: { title: parsed.data.title, createdById: session.userId, kind: defaultKind, position },
+    data: { title: parsed.data.title, createdById: session.userId, kind: parsed.data.kind, position },
   });
   revalidatePath("/lists");
   redirect(`/lists/${list.id}`);
