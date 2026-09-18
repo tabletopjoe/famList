@@ -46,7 +46,7 @@ export function ListSettingsMenu({
   }, [open]);
 
   const selectClass =
-    "mt-1 w-full rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-sm text-white disabled:opacity-50";
+    "mt-1 w-full rounded-md border border-black/15 bg-input-background px-2 py-1.5 text-sm text-background disabled:opacity-50";
 
   return (
     <>
@@ -81,7 +81,7 @@ export function ListSettingsMenu({
                 className={selectClass}
               >
                 {LIST_KINDS.map((k) => (
-                  <option key={k} value={k} className="bg-card-background text-white">
+                  <option key={k} value={k} className="bg-input-background text-background">
                     {LIST_KIND_LABELS[k]}
                   </option>
                 ))}
@@ -99,11 +99,11 @@ export function ListSettingsMenu({
                   }}
                   className={selectClass}
                 >
-                  <option value="" className="bg-card-background text-white">
+                  <option value="" className="bg-input-background text-background">
                     Never
                   </option>
                   {RESET_INTERVAL_OPTIONS.map((opt) => (
-                    <option key={opt.days} value={opt.days} className="bg-card-background text-white">
+                    <option key={opt.days} value={opt.days} className="bg-input-background text-background">
                       {opt.label}
                     </option>
                   ))}

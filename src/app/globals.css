@@ -11,6 +11,11 @@
   /* A lighter tint of --background, for surfaces (e.g. cards) that should
      read as raised above the page without breaking from the eggplant theme. */
   --card-background: #3a2434;
+  /* Near-white, same eggplant hue as --background/--card-background but
+     heavily desaturated — the fill for text inputs, so they read as dark
+     text on a light field (inverted from the rest of the dark-only UI)
+     rather than pale text on a near-invisible dark fill. */
+  --input-background: #ccc2ca;
   /* Governs both the left nav bar's width and the top bar's height, so the
      app's "chrome" reads as a single consistent L-shape. Change this one
      value to resize both at once. */
@@ -21,6 +26,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card-background: var(--card-background);
+  --color-input-background: var(--input-background);
   --font-sans: var(--font-gowun-dodum);
   --font-mono: var(--font-geist-mono);
 }
