@@ -23,7 +23,7 @@ export default async function ListsPage({
   const filter = parseOwnershipFilter(rawFilter);
   const sort = parseListSort(rawSort);
   const dir = parseListSortDir(rawDir, sort);
-  const panel = rawPanel === "sort" ? "sort" : "filter";
+  const panel = rawPanel === "filter" ? "filter" : "sort";
 
   // Default entry point: jump straight to the primary list, if one is set.
   // The top bar's "Lists" title links here with ?view=all to bypass this

@@ -8,7 +8,8 @@ type Panel = "filter" | "sort";
 
 function hrefFor(next: { panel: Panel; filter: OwnershipFilter; sort: ListSort; dir: ListSortDir }) {
   const params = new URLSearchParams({ view: "all" });
-  if (next.panel === "sort") params.set("panel", "sort");
+  // Sort is the default panel now — only "filter" needs to be spelled out.
+  if (next.panel === "filter") params.set("panel", "filter");
   if (next.filter !== "all") params.set("filter", next.filter);
   if (next.sort !== "custom") params.set("sort", next.sort);
   if (next.sort !== "custom" && next.dir !== DEFAULT_SORT_DIR[next.sort]) params.set("dir", next.dir);
