@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { forwardRef, useTransition, type PointerEventHandler } from "react";
-import { CheckSquare, Square, GripVertical } from "lucide-react";
+import { CheckSquare, Square, Grip } from "lucide-react";
 import { setPrimaryList } from "../actions";
 
 type DragHandleProps = {
@@ -77,7 +77,7 @@ export const ListCard = forwardRef<HTMLDivElement, ListCardProps>(function ListC
             className="touch-none cursor-grab select-none px-2 text-white/40 hover:text-white/70 active:cursor-grabbing disabled:opacity-30"
             {...dragHandleProps}
           >
-            <GripVertical className="size-5" strokeWidth={1.75} />
+            <Grip className="size-5" strokeWidth={1.75} />
           </button>
         )}
       </div>

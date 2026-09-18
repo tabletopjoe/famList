@@ -1,8 +1,8 @@
 "use client";
 
 import { forwardRef, useTransition, type PointerEventHandler } from "react";
-import { ChevronUp, ChevronDown, Clock, GripVertical, Trash2 } from "lucide-react";
-import { toggleItem, deleteItem, moveItem, setItemRecurring } from "../actions";
+import { Clock, Grip, Trash2 } from "lucide-react";
+import { toggleItem, deleteItem, setItemRecurring } from "../actions";
 import { useDeleteMode } from "./DeleteModeContext";
 import type { ListKind } from "../types";
 
@@ -23,18 +23,16 @@ type ItemRowProps = {
     isDone: boolean;
     isRecurring: boolean;
   };
-  canMoveUp: boolean;
-  canMoveDown: boolean;
   /** Tapping the item's text space opens ItemEditForm for it (see ItemList). */
   onEdit: () => void;
-  /** Mobile touch-and-drag (see ItemList) — omitted on desktop, where the chevrons above still do the job. */
+  /** Press-and-drag reordering (see ItemList) — the only way to reorder now, on every breakpoint. */
   dragHandleProps?: DragHandleProps;
   isDragging?: boolean;
   dragOffset?: number;
 };
 
 export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
-  { listId, kind, item, canMoveUp, canMoveDown, onEdit, dragHandleProps, isDragging, dragOffset = 0 },
+  { listId, kind, item, onEdit, dragHandleProps, isDragging, dragOffset = 0 },
   ref,
 ) {
   const [isPending, startTransition] = useTransition();
@@ -94,7 +92,8 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
           <>
             {/* Shopping lists only: recurring vs. one-off — governs whether
                 checking this off auto-resets it later (see
-                ListItem.isRecurring in schema.prisma). */}
+                ListItem.isRecurring in schema.prisma). Crossed out (in
+                addition to the fade) when it's a one-off. */}
             {kind === "shopping" && (
               <button
                 onClick={() => startTransition(() => setItemRecurring(listId, item.id, !item.isRecurring))}
@@ -102,47 +101,29 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
                 aria-pressed={item.isRecurring}
                 aria-label={item.isRecurring ? `Mark ${item.label} as a one-off item` : `Mark ${item.label} as recurring`}
                 title={item.isRecurring ? "Recurring — resets when checked off" : "One-off — stays checked"}
-                className={
+                className={`relative ${
                   item.isRecurring
-                    ? `text-white/70 hover:text-white disabled:opacity-30`
-                    : `text-black/25 hover:text-black/50 disabled:opacity-30 dark:text-white/25 dark:hover:text-white/50`
-                }
+                    ? "text-white/70 hover:text-white disabled:opacity-30"
+                    : "text-black/25 hover:text-black/50 disabled:opacity-30 dark:text-white/25 dark:hover:text-white/50"
+                }`}
               >
                 <Clock className="size-4" strokeWidth={1.75} />
+                {!item.isRecurring && (
+                  <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                    <span className="h-[1.5px] w-[18px] rotate-45 bg-current" />
+                  </span>
+                )}
               </button>
             )}
-            {/* Desktop/tablet: up/down chevrons. */}
-            <div className="hidden items-center gap-2 md:flex">
-              <button
-                onClick={() => startTransition(() => moveItem(listId, item.id, "up"))}
-                disabled={isPending || !canMoveUp}
-                aria-label={`Move ${item.label} up`}
-                title="Move up"
-                className={iconButtonClass}
-              >
-                <ChevronUp className="size-4" strokeWidth={1.75} />
-              </button>
-              <button
-                onClick={() => startTransition(() => moveItem(listId, item.id, "down"))}
-                disabled={isPending || !canMoveDown}
-                aria-label={`Move ${item.label} down`}
-                title="Move down"
-                className={iconButtonClass}
-              >
-                <ChevronDown className="size-4" strokeWidth={1.75} />
-              </button>
-            </div>
-            {/* Mobile: press-and-drag handle. touch-none stops the page from
-                scrolling under the finger once a drag starts, so pointermove
-                drives the reorder instead of native scroll. */}
+            {/* Press-and-drag handle — the only reorder control now, on every breakpoint. */}
             <button
               type="button"
               aria-label={`Reorder ${item.label}`}
               title="Drag to reorder"
-              className={`touch-none cursor-grab select-none px-4 active:cursor-grabbing md:hidden ${iconButtonClass}`}
+              className={`touch-none cursor-grab select-none px-4 active:cursor-grabbing ${iconButtonClass}`}
               {...dragHandleProps}
             >
-              <GripVertical className="size-4" strokeWidth={1.75} />
+              <Grip className="size-4" strokeWidth={1.75} />
             </button>
           </>
         )}

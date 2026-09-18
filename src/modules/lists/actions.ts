@@ -239,27 +239,6 @@ export async function deleteItem(listId: string, itemId: string) {
   revalidatePath(`/lists/${listId}`);
 }
 
-/** Swaps an item with its neighbor in the same isDone group and renormalizes positions to match. */
-export async function moveItem(listId: string, itemId: string, direction: "up" | "down") {
-  const session = await verifySession();
-  await requireListAccess(session.userId, listId);
-  const items = await db.listItem.findMany({
-    where: { listId },
-    orderBy: [{ isDone: "asc" }, { position: "asc" }, { createdAt: "asc" }],
-  });
-  const idx = items.findIndex((i) => i.id === itemId);
-  if (idx === -1) return;
-  const swapIdx = direction === "up" ? idx - 1 : idx + 1;
-  const neighbor = items[swapIdx];
-  if (!neighbor || neighbor.isDone !== items[idx].isDone) return;
-
-  const order = items.map((i) => i.id);
-  [order[idx], order[swapIdx]] = [order[swapIdx], order[idx]];
-
-  await db.$transaction(order.map((id, position) => db.listItem.update({ where: { id }, data: { position } })));
-  revalidatePath(`/lists/${listId}`);
-}
-
 /**
  * Persists a full drag-reordered item list (mobile touch-and-drag). Trusts
  * the client for the *order* but not the grouping: rejects anything that

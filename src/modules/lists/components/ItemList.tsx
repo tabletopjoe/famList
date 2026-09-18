@@ -110,9 +110,6 @@ export function ItemList({ listId, items, kind }: { listId: string; items: Item[
         {visibleIds.map((id) => {
           const item = itemsById.get(id);
           if (!item) return null;
-          const index = order.indexOf(id);
-          const prev = itemsById.get(order[index - 1] ?? "");
-          const next = itemsById.get(order[index + 1] ?? "");
           return (
             <ItemRow
               key={id}
@@ -123,8 +120,6 @@ export function ItemList({ listId, items, kind }: { listId: string; items: Item[
               listId={listId}
               item={item}
               kind={kind}
-              canMoveUp={!!prev && prev.isDone === item.isDone}
-              canMoveDown={!!next && next.isDone === item.isDone}
               onEdit={() => setEditingId(id)}
               isDragging={draggingId === id}
               dragOffset={draggingId === id ? dragOffset : 0}
