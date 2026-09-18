@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { TreePine } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { getOwnedListsWithShares } from "@/modules/lists/queries";
 import { getVisibleContactOwnerIds } from "@/modules/contacts/queries";
@@ -45,6 +47,15 @@ export default async function SettingsPage() {
           <ContactSharingSection otherUsers={otherUsers} sharedWithIds={contactSharedWithIds} />
         </div>
       </CollapsibleSection>
+      {user.role === "admin" && (
+        <Link
+          href="/admin"
+          className="inline-flex items-center gap-2 rounded-md border border-white/15 px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+        >
+          <TreePine className="size-4" strokeWidth={1.75} />
+          Admin
+        </Link>
+      )}
     </div>
   );
 }

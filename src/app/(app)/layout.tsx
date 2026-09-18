@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { LogOut, TreePine } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { logout } from "@/app/actions/auth";
 import { AppSidebar, MobileNav, BuildTag } from "@/components/AppNav";
@@ -56,19 +55,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         {/* The sidebar (which carries its own BuildTag) is desktop-only, so
             mirror the stamp into a corner on mobile for deploy checks. */}
         <BuildTag className="pointer-events-none fixed bottom-1 left-2 z-50 md:hidden" />
-        {/* Admin-only entry point, deliberately out of the way — a
-            translucent floating icon in the corner rather than a normal nav
-            item, since only admins ever see it. */}
-        {user.role === "admin" && (
-          <Link
-            href="/admin"
-            aria-label="Admin"
-            title="Admin"
-            className="fixed bottom-4 right-4 z-40 flex size-5 items-center justify-center rounded-full bg-white/10 text-white/50 backdrop-blur-sm transition-colors hover:bg-white/20 hover:text-white/90"
-          >
-            <TreePine className="size-2.5" strokeWidth={1.75} />
-          </Link>
-        )}
       </TopBarSlotProvider>
     </div>
   );
