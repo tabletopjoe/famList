@@ -42,3 +42,17 @@ export const LIST_SORT_LABELS: Record<ListSort, string> = {
 export function parseListSort(raw: string | undefined): ListSort {
   return (LIST_SORTS as readonly string[]).includes(raw ?? "") ? (raw as ListSort) : "custom";
 }
+
+export type ListSortDir = "asc" | "desc";
+
+/** Each sort field's direction when first selected — tapping its chip again flips it from there. Meaningless for "custom" (drag order has no direction). */
+export const DEFAULT_SORT_DIR: Record<ListSort, ListSortDir> = {
+  custom: "asc",
+  name: "asc",
+  created: "desc",
+  kind: "asc",
+};
+
+export function parseListSortDir(raw: string | undefined, sort: ListSort): ListSortDir {
+  return raw === "asc" || raw === "desc" ? raw : DEFAULT_SORT_DIR[sort];
+}

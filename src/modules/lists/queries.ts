@@ -2,7 +2,7 @@ import "server-only";
 import { db } from "@/lib/db";
 import type { OwnershipFilter } from "@/components/OwnershipFilterChips";
 import type { ListItemOrderByWithRelationInput, ListOrderByWithRelationInput } from "@/generated/prisma/models";
-import type { ListSort } from "./types";
+import type { ListSort, ListSortDir } from "./types";
 
 /** A list is visible to its creator, or to anyone it's been explicitly shared with. */
 export function visibleToUser(userId: string) {
@@ -15,18 +15,23 @@ function whereForFilter(userId: string, filter: OwnershipFilter) {
   return visibleToUser(userId);
 }
 
-/** "custom" is drag order (List.position); the rest are one-off query sorts — see ListSort in types.ts. */
-function orderByForSort(sort: ListSort): ListOrderByWithRelationInput[] {
-  if (sort === "name") return [{ title: "asc" }];
-  if (sort === "created") return [{ createdAt: "desc" }];
-  if (sort === "kind") return [{ kind: "asc" }, { position: "asc" }];
+/** "custom" is drag order (List.position) and ignores dir — the rest are one-off query sorts — see ListSort in types.ts. */
+function orderByForSort(sort: ListSort, dir: ListSortDir): ListOrderByWithRelationInput[] {
+  if (sort === "name") return [{ title: dir }];
+  if (sort === "created") return [{ createdAt: dir }];
+  if (sort === "kind") return [{ kind: dir }, { position: "asc" }];
   return [{ position: "asc" }, { createdAt: "desc" }];
 }
 
-export function getLists(userId: string, filter: OwnershipFilter = "all", sort: ListSort = "custom") {
+export function getLists(
+  userId: string,
+  filter: OwnershipFilter = "all",
+  sort: ListSort = "custom",
+  dir: ListSortDir = "asc",
+) {
   return db.list.findMany({
     where: whereForFilter(userId, filter),
-    orderBy: orderByForSort(sort),
+    orderBy: orderByForSort(sort, dir),
     include: { _count: { select: { items: true } } },
   });
 }

@@ -5,9 +5,9 @@ export type OwnershipFilter = "all" | "mine" | "shared";
 export const OWNERSHIP_FILTERS: OwnershipFilter[] = ["all", "mine", "shared"];
 
 export const OWNERSHIP_FILTER_LABELS: Record<OwnershipFilter, string> = {
-  all: "Everyone I can see",
+  all: "All",
   mine: "Mine",
-  shared: "Shared with me",
+  shared: "Shared",
 };
 
 export function parseOwnershipFilter(raw: string | undefined): OwnershipFilter {
