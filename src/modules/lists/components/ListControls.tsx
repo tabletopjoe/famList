@@ -7,7 +7,7 @@ import { useDeleteMode } from "./DeleteModeContext";
 import { useItemEdit } from "./ItemEditContext";
 import { useItemSort } from "./ItemSortContext";
 import { ListSettingsMenu } from "./ListSettingsMenu";
-import { chipClass } from "../chipClass";
+import { chipClass } from "@/components/chipClass";
 import type { ListKind } from "../types";
 
 /**

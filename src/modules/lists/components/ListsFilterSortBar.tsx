@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Filter, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { OWNERSHIP_FILTERS, OWNERSHIP_FILTER_LABELS, type OwnershipFilter } from "@/components/OwnershipFilterChips";
 import { LIST_SORTS, LIST_SORT_LABELS, DEFAULT_SORT_DIR, type ListSort, type ListSortDir } from "../types";
-import { chipClass } from "../chipClass";
+import { chipClass } from "@/components/chipClass";
 
 type Panel = "filter" | "sort";
 

@@ -1,82 +1,31 @@
 "use client";
 
-import { useRef, useState, useTransition, type PointerEvent as ReactPointerEvent } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { Grip, Plus, Trash2 } from "lucide-react";
 import { createCategory, deleteCategory, reorderCategories } from "../actions";
+import { useDragReorder } from "@/hooks/useDragReorder";
 
 type Category = { id: string; name: string };
-
-type DragState = { id: string; startY: number };
 
 /**
  * Add/delete/reorder for one list's categories — lives inside
  * ListSettingsMenu's "Categories" CollapsibleSection. Same press-and-drag
- * pattern as ItemList/ListCardList, just without a group boundary (any
- * category can trade places with any other).
+ * pattern as ItemList/ListCardList (see useDragReorder), just without a
+ * group boundary (any category can trade places with any other).
  */
 export function CategoryManager({ listId, categories }: { listId: string; categories: Category[] }) {
-  const [order, setOrder] = useState(() => categories.map((c) => c.id));
-  const [prevCategories, setPrevCategories] = useState(categories);
-  if (categories !== prevCategories) {
-    setPrevCategories(categories);
-    setOrder(categories.map((c) => c.id));
-  }
   const categoriesById = new Map(categories.map((c) => [c.id, c]));
+  const categoryIds = useMemo(() => categories.map((c) => c.id), [categories]);
 
-  const [, startTransition] = useTransition();
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [dragOffset, setDragOffset] = useState(0);
-  const rowRefs = useRef(new Map<string, HTMLDivElement>());
-  const drag = useRef<DragState | null>(null);
+  const { order, draggingId, dragOffset, registerRow, dragHandlePropsFor } = useDragReorder<string, HTMLDivElement>(
+    categoryIds,
+    (order) => reorderCategories(listId, order),
+  );
 
+  const [, startDeleteTransition] = useTransition();
   const [newName, setNewName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [addPending, startAddTransition] = useTransition();
-
-  function handlePointerDown(e: ReactPointerEvent<HTMLButtonElement>, id: string) {
-    if (e.pointerType === "mouse" && e.button !== 0) return;
-    drag.current = { id, startY: e.clientY };
-    setDraggingId(id);
-    setDragOffset(0);
-    e.currentTarget.setPointerCapture(e.pointerId);
-  }
-
-  function handlePointerMove(e: ReactPointerEvent<HTMLButtonElement>) {
-    const state = drag.current;
-    if (!state) return;
-    setDragOffset(e.clientY - state.startY);
-
-    const currentIdx = order.indexOf(state.id);
-    for (let i = 0; i < order.length; i++) {
-      if (i === currentIdx) continue;
-      const el = rowRefs.current.get(order[i]);
-      if (!el) continue;
-      const rect = el.getBoundingClientRect();
-      const midpoint = rect.top + rect.height / 2;
-      const movingDown = i > currentIdx;
-      const crossed = movingDown ? e.clientY > midpoint : e.clientY < midpoint;
-      if (crossed) {
-        const next = order.slice();
-        next.splice(currentIdx, 1);
-        next.splice(i, 0, state.id);
-        setOrder(next);
-        state.startY = e.clientY;
-        setDragOffset(0);
-        break;
-      }
-    }
-  }
-
-  function endDrag() {
-    const state = drag.current;
-    if (!state) return;
-    drag.current = null;
-    setDraggingId(null);
-    setDragOffset(0);
-    startTransition(() => {
-      reorderCategories(listId, order);
-    });
-  }
 
   function handleAdd() {
     const name = newName.trim();
@@ -105,10 +54,7 @@ export function CategoryManager({ listId, categories }: { listId: string; catego
             return (
               <div
                 key={id}
-                ref={(el) => {
-                  if (el) rowRefs.current.set(id, el);
-                  else rowRefs.current.delete(id);
-                }}
+                ref={(el) => registerRow(id, el)}
                 style={
                   isDragging ? { transform: `translateY(${dragOffset}px)`, position: "relative", zIndex: 10 } : undefined
                 }
@@ -117,7 +63,7 @@ export function CategoryManager({ listId, categories }: { listId: string; catego
                 <span className="flex-1 truncate text-sm text-white">{category.name}</span>
                 <button
                   type="button"
-                  onClick={() => startTransition(() => deleteCategory(listId, id))}
+                  onClick={() => startDeleteTransition(() => deleteCategory(listId, id))}
                   aria-label={`Delete category ${category.name}`}
                   title="Delete category"
                   className="text-white/40 hover:text-red-400"
@@ -129,10 +75,7 @@ export function CategoryManager({ listId, categories }: { listId: string; catego
                   aria-label={`Reorder ${category.name}`}
                   title="Drag to reorder"
                   className="touch-none cursor-grab select-none px-1 text-white/40 hover:text-white/70 active:cursor-grabbing"
-                  onPointerDown={(e) => handlePointerDown(e, id)}
-                  onPointerMove={handlePointerMove}
-                  onPointerUp={endDrag}
-                  onPointerCancel={endDrag}
+                  {...dragHandlePropsFor(id)}
                 >
                   <Grip className="size-4" strokeWidth={1.75} />
                 </button>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { chipClass } from "./chipClass";
 
 export type OwnershipFilter = "all" | "mine" | "shared";
 
@@ -31,13 +32,7 @@ export function OwnershipFilterChips({
   return (
     <div className="flex flex-wrap gap-2">
       {OWNERSHIP_FILTERS.map((filter) => (
-        <Link
-          key={filter}
-          href={hrefFor(filter)}
-          className={`rounded-full px-3 py-1 text-sm transition-colors ${
-            current === filter ? "bg-white/15 text-white" : "text-white/60 hover:bg-white/10 hover:text-white"
-          }`}
-        >
+        <Link key={filter} href={hrefFor(filter)} className={chipClass(current === filter)}>
           {OWNERSHIP_FILTER_LABELS[filter]}
         </Link>
       ))}

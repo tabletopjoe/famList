@@ -48,7 +48,3 @@ next-env.d.ts
 /dev.db-journal
 prisma/*.db
 prisma/*.db-journal
-
-# one-off SharePoint export + its extracted intermediate — real family data, not for git
-/*.xlsx
-/prisma/import-data
