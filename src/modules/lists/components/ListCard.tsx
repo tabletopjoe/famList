@@ -4,6 +4,7 @@ import Link from "next/link";
 import { forwardRef, useTransition, type PointerEventHandler } from "react";
 import { CheckSquare, Square, Grip } from "lucide-react";
 import { setPrimaryList } from "../actions";
+import { LIST_KIND_LABELS, type ListKind } from "../types";
 
 type DragHandleProps = {
   onPointerDown: PointerEventHandler<HTMLButtonElement>;
@@ -47,7 +48,7 @@ export const ListCard = forwardRef<HTMLDivElement, ListCardProps>(function ListC
       <Link href={`/lists/${list.id}`} className="flex-1">
         <p className="font-medium">{list.title}</p>
         <p className="text-sm text-white/60">
-          {list._count.items} item{list._count.items === 1 ? "" : "s"}
+          ({list._count.items}) {LIST_KIND_LABELS[list.kind as ListKind]}
         </p>
       </Link>
       <div className="flex items-center gap-3">
