@@ -13,8 +13,8 @@ import type { ListKind } from "../types";
 /**
  * Row of per-list controls, sitting under the title/back-link row and
  * above the add-item form. Normally the delete-mode toggle, the
- * check-all/uncheck-all toggle, the list settings menu, and (rightmost) the
- * sort-mode toggle. Toggling sort mode replaces all of those with the
+ * check-all/uncheck-all toggle, the sort-mode toggle, and (rightmost) the
+ * list settings menu. Toggling sort mode replaces all of those with the
  * Custom/Category sort chips instead — the toggle icon stays put either way
  * so you can flip back. `relative` here is load-bearing when the normal
  * controls are showing: it's what ListSettingsMenu's overlay panel
@@ -129,6 +129,7 @@ export function ListControls({
           <RefreshCw className="size-4" strokeWidth={1.75} />
         </button>
       )}
+      {sortToggleButton}
       <ListSettingsMenu
         listId={listId}
         title={title}
@@ -137,7 +138,6 @@ export function ListControls({
         totalCount={totalCount}
         categories={categories}
       />
-      {sortToggleButton}
     </div>
   );
 }

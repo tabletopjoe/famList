@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition, type PointerEvent as ReactPointerEvent } from "react";
+import { ChevronDown } from "lucide-react";
 import { reorderItems } from "../actions";
 import type { ListKind } from "../types";
 import { ItemEditForm } from "./ItemEditForm";
@@ -57,6 +58,7 @@ export function ItemList({
   const [dragOffset, setDragOffset] = useState(0);
   const { editingId, setEditingId } = useItemEdit();
   const { itemSort, categoryDir } = useItemSort();
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const rowRefs = useRef(new Map<string, HTMLLIElement>());
   const drag = useRef<DragState | null>(null);
 
@@ -175,16 +177,44 @@ export function ItemList({
     return result;
   }
 
+  function toggleGroup(key: string) {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
+
   return (
     <>
       {!editingId && itemSort === "category" ? (
-        <div className="space-y-4">
-          {groupByCategory().map((group) => (
-            <div key={group.id ?? "uncategorized"}>
-              <p className="mb-1 text-xs font-medium tracking-wide text-white/40 uppercase">{group.name}</p>
-              <ul className="divide-y divide-black/10 dark:divide-white/15">{group.ids.map(renderRow)}</ul>
-            </div>
-          ))}
+        <div className="space-y-3">
+          {groupByCategory().map((group) => {
+            const key = group.id ?? "uncategorized";
+            const collapsed = collapsedGroups.has(key);
+            return (
+              <div key={key}>
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(key)}
+                  aria-expanded={!collapsed}
+                  className="flex w-full items-center justify-between gap-2 py-1 text-left"
+                >
+                  <span className="text-xs font-medium tracking-wide text-white/40 uppercase">
+                    {group.name} <span className="text-white/30">({group.ids.length})</span>
+                  </span>
+                  <ChevronDown
+                    className={`size-3.5 shrink-0 text-white/40 transition-transform ${collapsed ? "" : "rotate-180"}`}
+                    strokeWidth={1.75}
+                  />
+                </button>
+                {!collapsed && (
+                  <ul className="divide-y divide-black/10 dark:divide-white/15">{group.ids.map(renderRow)}</ul>
+                )}
+              </div>
+            );
+          })}
         </div>
       ) : (
         <ul className="divide-y divide-black/10 dark:divide-white/15">{visibleIds.map(renderRow)}</ul>
