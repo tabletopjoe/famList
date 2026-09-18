@@ -3,8 +3,9 @@
 import { useActionState } from "react";
 import { Plus } from "lucide-react";
 import { addItem, type ActionState } from "../actions";
+import type { ListKind } from "../types";
 
-export function AddItemForm({ listId }: { listId: string }) {
+export function AddItemForm({ listId, kind }: { listId: string; kind: ListKind }) {
   const action = async (prevState: ActionState, formData: FormData) => {
     const result = await addItem(listId, prevState, formData);
     return result;
@@ -26,11 +27,13 @@ export function AddItemForm({ listId }: { listId: string }) {
           required
           className="min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-3 py-2 text-sm text-background placeholder:text-background/40"
         />
-        <input
-          name="quantity"
-          placeholder="Qty"
-          className="w-[38px] min-w-0 shrink-0 rounded-md border border-black/15 bg-white/80 px-1 py-2 text-center text-sm text-background placeholder:text-background/40"
-        />
+        {kind === "shopping" && (
+          <input
+            name="quantity"
+            placeholder="Qty"
+            className="w-[38px] min-w-0 shrink-0 rounded-md border border-black/15 bg-white/80 px-1 py-2 text-center text-sm text-background placeholder:text-background/40"
+          />
+        )}
         <button
           type="submit"
           disabled={pending}

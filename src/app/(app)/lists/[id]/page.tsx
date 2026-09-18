@@ -42,7 +42,7 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
             doneCount={list.items.filter((item) => item.isDone).length}
             totalCount={list.items.length}
           />
-          <AddItemForm listId={list.id} />
+          <AddItemForm listId={list.id} kind={list.kind as ListKind} />
           {list.items.length === 0 ? (
             <p className="text-sm text-black/60 dark:text-white/60">No items yet — add one above.</p>
           ) : (
