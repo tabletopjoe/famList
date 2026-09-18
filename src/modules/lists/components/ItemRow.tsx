@@ -70,7 +70,10 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
                 toggleItem(listId, item.id, checked);
               });
             }}
-            className="size-4 shrink-0 accent-[#F4A261]/85"
+            // 8-digit hex (not the /85 opacity-modifier syntax) so this compiles to a
+            // plain color instead of oklab() — Tailwind's opacity modifier on an
+            // arbitrary color has no plain-color fallback for browsers that lack it.
+            className="size-4 shrink-0 accent-[#F4A261D9]"
           />
         )}
         {/* The text space between the checkbox and the icon group opens the edit form. */}

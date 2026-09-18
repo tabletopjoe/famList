@@ -23,14 +23,23 @@ export function ChangePasswordForm() {
         name="currentPassword"
         type="password"
         placeholder="Current password"
+        autoComplete="current-password"
         required
         className={inputClass}
       />
-      <input name="newPassword" type="password" placeholder="New password" required className={inputClass} />
+      <input
+        name="newPassword"
+        type="password"
+        placeholder="New password"
+        autoComplete="new-password"
+        required
+        className={inputClass}
+      />
       <input
         name="confirmPassword"
         type="password"
         placeholder="Confirm new password"
+        autoComplete="new-password"
         required
         className={inputClass}
       />

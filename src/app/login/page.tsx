@@ -15,6 +15,7 @@ export default function LoginPage() {
             name="email"
             type="email"
             placeholder="Email"
+            autoComplete="username"
             required
             className="w-full rounded-md border border-black/10 px-3 py-2 text-sm dark:border-white/15 dark:bg-white/5"
           />
@@ -22,6 +23,7 @@ export default function LoginPage() {
             name="password"
             type="password"
             placeholder="Password"
+            autoComplete="current-password"
             required
             className="w-full rounded-md border border-black/10 px-3 py-2 text-sm dark:border-white/15 dark:bg-white/5"
           />
