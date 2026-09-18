@@ -40,10 +40,11 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
   const iconButtonClass =
     "text-black/40 hover:text-black/70 disabled:opacity-30 disabled:hover:text-black/40 dark:text-white/40 dark:hover:text-white/70 dark:disabled:hover:text-white/40";
 
-  // Only shopping lists track "done" day-to-day — everywhere else, isDone
-  // only matters while picking things to delete, so the checkbox stays
-  // hidden the rest of the time (see LIST_KINDS in types.ts).
-  const showCheckbox = kind === "shopping" || deleteMode;
+  // Only shopping lists use "done" at all — everywhere else the checkbox
+  // stays hidden even in delete mode, where deleting is a direct tap on the
+  // trash icon below, not a check-then-delete flow (see LIST_KINDS in
+  // types.ts).
+  const showCheckbox = kind === "shopping";
   const labelSpan = (
     <span className={`flex-1 ${item.isDone ? "text-black/40 line-through dark:text-white/40" : ""}`}>
       {item.label}
