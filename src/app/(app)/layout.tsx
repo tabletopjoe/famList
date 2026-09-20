@@ -17,7 +17,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <div className="flex min-w-0 flex-1 flex-col">
           <header
             style={{ height: "var(--chrome-size)" }}
-            className="flex items-center gap-3 overflow-hidden border-b border-white/15 px-4 text-sm"
+            className="flex items-center gap-3 overflow-hidden border-b border-foreground/15 px-4 text-sm"
           >
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <div className="shrink-0">
@@ -35,20 +35,20 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-3">
-              <span className="max-w-[8rem] truncate text-white/60">{user.name}</span>
+              <span className="max-w-[8rem] truncate text-foreground/60">{user.name}</span>
               <form action={logout}>
                 <button
                   type="submit"
                   aria-label="Log out"
                   title="Log out"
-                  className="flex size-8 items-center justify-center rounded-md text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+                  className="flex size-8 items-center justify-center rounded-md text-foreground/60 transition-colors hover:bg-foreground/10 hover:text-foreground"
                 >
                   <LogOut className="size-4" strokeWidth={1.75} />
                 </button>
               </form>
             </div>
           </header>
-          <main className="flex-1 px-6 py-8 md:border-l md:border-white/15">
+          <main className="flex-1 px-6 py-8 md:border-l md:border-foreground/15">
             <div className="mx-auto w-full max-w-4xl">{children}</div>
           </main>
         </div>

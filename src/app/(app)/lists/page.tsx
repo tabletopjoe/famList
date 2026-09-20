@@ -43,7 +43,7 @@ export default async function ListsPage({
       <CreateListForm />
       <ListsFilterSortBar panel={panel} filter={filter} sort={sort} dir={dir} />
       {lists.length === 0 ? (
-        <p className="text-sm text-white/60">{EMPTY_MESSAGE[filter]}</p>
+        <p className="text-sm text-foreground/60">{EMPTY_MESSAGE[filter]}</p>
       ) : (
         <ListCardList lists={lists} primaryListId={user.primaryListId} anyPrimary={anyPrimary} draggable={sort === "custom"} />
       )}

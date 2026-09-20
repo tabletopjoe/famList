@@ -18,7 +18,7 @@ export function ExportContactsButton() {
       href="/api/contacts/export"
       aria-label="Export contacts to CSV"
       title="Export to CSV"
-      className="flex size-8 items-center justify-center rounded-md text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+      className="flex size-8 items-center justify-center rounded-md text-foreground/80 transition-colors hover:bg-foreground/10 hover:text-foreground"
     >
       <Download className="size-4" strokeWidth={1.75} />
     </a>

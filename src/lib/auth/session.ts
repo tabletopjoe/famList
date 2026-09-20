@@ -22,6 +22,12 @@ export type SessionPayload = {
   // session (call createSession again) whenever the underlying flag changes,
   // or this goes stale until the cookie's natural expiry.
   mustChangePassword: boolean;
+  // Mirrors User.theme/themeMode, so RootLayout can paint the right theme
+  // without a DB round trip on every request (it can't use verifySession's
+  // cached DB lookup — it also renders for signed-out visitors on /login).
+  // Reissue the session whenever these change, same as mustChangePassword.
+  theme: string;
+  themeMode: string;
   expiresAt: number; // epoch ms
 };
 
@@ -47,12 +53,17 @@ async function decrypt(token: string | undefined): Promise<SessionPayload | null
 
 /**
  * Call after verifying credentials to start a logged-in session, and again
- * after changing a password to refresh the mustChangePassword flag baked
- * into the existing cookie.
+ * whenever mustChangePassword, theme, or themeMode change to refresh the
+ * copy baked into the existing cookie.
  */
-export async function createSession(userId: string, mustChangePassword: boolean) {
+export async function createSession(
+  userId: string,
+  mustChangePassword: boolean,
+  theme: string,
+  themeMode: string,
+) {
   const expiresAt = Date.now() + SESSION_DURATION_MS;
-  const token = await encrypt({ userId, mustChangePassword, expiresAt });
+  const token = await encrypt({ userId, mustChangePassword, theme, themeMode, expiresAt });
   const cookieStore = await cookies();
 
   cookieStore.set(SESSION_COOKIE, token, {

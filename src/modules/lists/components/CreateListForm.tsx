@@ -19,7 +19,7 @@ export function CreateListForm() {
           placeholder="New list, e.g. Groceries"
           required
           onFocus={() => setActive(true)}
-          className="min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-3 py-2 text-sm text-background placeholder:text-background/40"
+          className="min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-3 py-2 text-sm text-field-ink placeholder:text-field-ink/40"
         />
         <button
           type="submit"
@@ -34,10 +34,10 @@ export function CreateListForm() {
           name="kind"
           defaultValue="shopping"
           disabled={pending}
-          className="w-full rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-background disabled:opacity-50"
+          className="w-full rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-field-ink disabled:opacity-50"
         >
           {LIST_KINDS.map((k) => (
-            <option key={k} value={k} className="bg-white/80 text-background">
+            <option key={k} value={k} className="bg-white/80 text-field-ink">
               {LIST_KIND_LABELS[k]}
             </option>
           ))}

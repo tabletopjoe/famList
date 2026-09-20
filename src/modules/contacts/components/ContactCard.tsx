@@ -31,12 +31,12 @@ export function ContactCard({ contact }: ContactCardProps) {
     .join(" ");
 
   return (
-    <div className="flex items-start justify-between gap-3 rounded-lg border border-black/10 p-4 dark:border-white/15">
+    <div className="flex items-start justify-between gap-3 rounded-lg border border-foreground/10 p-4 dark:border-foreground/15">
       <div className="space-y-1">
         <p className="font-medium">
           {fullName}
           {contact.relationship && (
-            <span className="ml-2 text-sm font-normal text-black/50 dark:text-white/50">
+            <span className="ml-2 text-sm font-normal text-foreground/50">
               {contact.relationship}
             </span>
           )}
@@ -44,15 +44,15 @@ export function ContactCard({ contact }: ContactCardProps) {
         {contact.phone && <p className="text-sm">{contact.phone}</p>}
         {contact.email && <p className="text-sm">{contact.email}</p>}
         {contact.address1 && (
-          <p className="text-sm text-black/60 dark:text-white/60">{contact.address1}</p>
+          <p className="text-sm text-foreground/60">{contact.address1}</p>
         )}
         {contact.address2 && (
-          <p className="text-sm text-black/60 dark:text-white/60">{contact.address2}</p>
+          <p className="text-sm text-foreground/60">{contact.address2}</p>
         )}
         {cityStateZip && (
-          <p className="text-sm text-black/60 dark:text-white/60">{cityStateZip}</p>
+          <p className="text-sm text-foreground/60">{cityStateZip}</p>
         )}
-        {contact.notes && <p className="text-sm text-black/50 dark:text-white/50">{contact.notes}</p>}
+        {contact.notes && <p className="text-sm text-foreground/50">{contact.notes}</p>}
       </div>
       <button
         onClick={() => {
@@ -61,7 +61,7 @@ export function ContactCard({ contact }: ContactCardProps) {
           }
         }}
         disabled={isPending}
-        className="text-sm text-black/40 hover:text-red-600 disabled:opacity-50"
+        className="text-sm text-foreground/40 hover:text-red-600 disabled:opacity-50"
         aria-label={`Delete ${fullName}`}
       >
         ✕

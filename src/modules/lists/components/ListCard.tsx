@@ -43,11 +43,11 @@ export const ListCard = forwardRef<HTMLDivElement, ListCardProps>(function ListC
     <div
       ref={ref}
       style={isDragging ? { transform: `translateY(${dragOffset}px)`, position: "relative", zIndex: 10 } : undefined}
-      className={`flex items-center justify-between gap-3 rounded-lg border border-white/15 bg-card-background p-4 ${isDragging ? "shadow-xl" : ""}`}
+      className={`flex items-center justify-between gap-3 rounded-lg border border-foreground/15 bg-card-background p-4 ${isDragging ? "shadow-xl" : ""}`}
     >
       <Link href={`/lists/${list.id}`} className="flex-1">
         <p className="font-medium">{list.title}</p>
-        <p className="text-sm text-white/60">
+        <p className="text-sm text-foreground/60">
           ({list._count.items}) {LIST_KIND_LABELS[list.kind as ListKind]}
         </p>
       </Link>
@@ -58,7 +58,7 @@ export const ListCard = forwardRef<HTMLDivElement, ListCardProps>(function ListC
             disabled={isPending}
             aria-label={isPrimary ? `Unset ${list.title} as the primary list` : `Set ${list.title} as the primary list`}
             title={isPrimary ? "Primary list" : "Set as primary list"}
-            className={`disabled:opacity-50 ${isPrimary ? "text-white" : "text-white/40 hover:text-white"}`}
+            className={`disabled:opacity-50 ${isPrimary ? "text-foreground" : "text-foreground/40 hover:text-foreground"}`}
           >
             {isPrimary ? (
               <CheckSquare className="size-5" strokeWidth={1.75} />
@@ -75,7 +75,7 @@ export const ListCard = forwardRef<HTMLDivElement, ListCardProps>(function ListC
             type="button"
             aria-label={`Reorder ${list.title}`}
             title="Drag to reorder"
-            className="touch-none cursor-grab select-none px-2 text-white/40 hover:text-white/70 active:cursor-grabbing disabled:opacity-30"
+            className="touch-none cursor-grab select-none px-2 text-foreground/40 hover:text-foreground/70 active:cursor-grabbing disabled:opacity-30"
             {...dragHandleProps}
           >
             <Grip className="size-5" strokeWidth={1.75} />

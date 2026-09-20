@@ -52,7 +52,7 @@ function NavIcon({ href, label, Icon, active }: NavItem) {
       title={label}
       style={iconButtonStyle}
       className={`flex items-center justify-center rounded-md transition-colors ${
-        active ? "bg-white/15" : "hover:bg-white/10"
+        active ? "bg-foreground/15" : "hover:bg-foreground/10"
       }`}
     >
       <Icon className="size-5" strokeWidth={1.75} />
@@ -72,7 +72,7 @@ export function BuildTag({ className = "" }: { className?: string }) {
   return (
     <span
       title={BUILD_DATE ? `${BUILD_SHA} · built ${BUILD_DATE}` : BUILD_SHA}
-      className={`font-mono text-[10px] leading-none tracking-tight text-white/30 ${className}`}
+      className={`font-mono text-[10px] leading-none tracking-tight text-foreground/30 ${className}`}
     >
       {BUILD_SHA}
     </span>

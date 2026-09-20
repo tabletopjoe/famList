@@ -14,10 +14,10 @@ export function ListSharingSection({
   otherUsers: OtherUser[];
 }) {
   if (lists.length === 0) {
-    return <p className="text-sm text-white/60">You don&apos;t own any lists yet.</p>;
+    return <p className="text-sm text-foreground/60">You don&apos;t own any lists yet.</p>;
   }
   if (otherUsers.length === 0) {
-    return <p className="text-sm text-white/60">No other family members to share with yet.</p>;
+    return <p className="text-sm text-foreground/60">No other family members to share with yet.</p>;
   }
 
   return (
@@ -34,11 +34,11 @@ function ListShareRow({ list, otherUsers }: { list: OwnedList; otherUsers: Other
   const sharedWith = new Set(list.shares.map((share) => share.userId));
 
   return (
-    <div className="rounded-lg border border-white/15 bg-card-background p-3">
+    <div className="rounded-lg border border-foreground/15 bg-card-background p-3">
       <p className="font-medium">{list.title}</p>
       <div className="mt-2 flex flex-wrap gap-4">
         {otherUsers.map((user) => (
-          <label key={user.id} className="flex items-center gap-2 text-sm text-white/80">
+          <label key={user.id} className="flex items-center gap-2 text-sm text-foreground/80">
             <input
               type="checkbox"
               checked={sharedWith.has(user.id)}

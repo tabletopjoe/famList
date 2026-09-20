@@ -4,7 +4,7 @@ import { useActionState, useRef } from "react";
 import { changePassword, type ActionState } from "../actions";
 
 const inputClass =
-  "w-full rounded-md border border-black/10 px-3 py-2 text-sm dark:border-white/15 dark:bg-white/5";
+  "w-full rounded-md border border-foreground/10 px-3 py-2 text-sm dark:border-foreground/15 dark:bg-foreground/5";
 
 export function ChangePasswordForm() {
   const formRef = useRef<HTMLFormElement>(null);

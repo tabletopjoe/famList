@@ -17,7 +17,7 @@ export default function LoginPage() {
             placeholder="Email"
             autoComplete="username"
             required
-            className="w-full rounded-md border border-black/10 px-3 py-2 text-sm dark:border-white/15 dark:bg-white/5"
+            className="w-full rounded-md border border-foreground/10 px-3 py-2 text-sm dark:border-foreground/15 dark:bg-foreground/5"
           />
           <input
             name="password"
@@ -25,7 +25,7 @@ export default function LoginPage() {
             placeholder="Password"
             autoComplete="current-password"
             required
-            className="w-full rounded-md border border-black/10 px-3 py-2 text-sm dark:border-white/15 dark:bg-white/5"
+            className="w-full rounded-md border border-foreground/10 px-3 py-2 text-sm dark:border-foreground/15 dark:bg-foreground/5"
           />
         </div>
         {state?.error && <p className="text-sm text-red-600">{state.error}</p>}

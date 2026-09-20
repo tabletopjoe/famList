@@ -17,13 +17,13 @@ export function ContactSharingSection({
   const shared = new Set(sharedWithIds);
 
   if (otherUsers.length === 0) {
-    return <p className="text-sm text-white/60">No other family members to share with yet.</p>;
+    return <p className="text-sm text-foreground/60">No other family members to share with yet.</p>;
   }
 
   return (
     <div className="space-y-2">
       {otherUsers.map((user) => (
-        <label key={user.id} className="flex items-center gap-2 text-sm text-white/80">
+        <label key={user.id} className="flex items-center gap-2 text-sm text-foreground/80">
           <input
             type="checkbox"
             checked={shared.has(user.id)}

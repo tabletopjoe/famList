@@ -50,7 +50,7 @@ export function ListSettingsMenu({
   }, [open]);
 
   const selectClass =
-    "mt-1 w-full rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-background disabled:opacity-50";
+    "mt-1 w-full rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-field-ink disabled:opacity-50";
 
   return (
     <>
@@ -62,9 +62,7 @@ export function ListSettingsMenu({
         aria-label="List settings"
         title="List settings"
         className={`flex size-8 items-center justify-center rounded-md transition-colors ${
-          open
-            ? "bg-white/15 text-white"
-            : "text-black/40 hover:text-black/70 dark:text-white/40 dark:hover:text-white/70"
+          open ? "bg-foreground/15 text-foreground" : "text-foreground/40 hover:text-foreground/70"
         }`}
       >
         <Settings className="size-4" strokeWidth={1.75} />
@@ -72,11 +70,11 @@ export function ListSettingsMenu({
       {open && (
         <div
           ref={panelRef}
-          className="absolute inset-x-0 top-full z-20 mt-2 rounded-lg border border-white/15 bg-card-background/70 p-4 shadow-xl backdrop-blur-md"
+          className="absolute inset-x-0 top-full z-20 mt-2 rounded-lg border border-foreground/15 bg-card-background/70 p-4 shadow-xl backdrop-blur-md"
         >
-          <p className="text-sm font-medium text-white">List settings</p>
+          <p className="text-sm font-medium text-foreground">List settings</p>
           <div className="mt-3 max-w-sm space-y-3">
-            <label className="block text-sm text-white/70">
+            <label className="block text-sm text-foreground/70">
               List type
               <select
                 value={kind}
@@ -85,14 +83,14 @@ export function ListSettingsMenu({
                 className={selectClass}
               >
                 {LIST_KINDS.map((k) => (
-                  <option key={k} value={k} className="bg-white/80 text-background">
+                  <option key={k} value={k} className="bg-white/80 text-field-ink">
                     {LIST_KIND_LABELS[k]}
                   </option>
                 ))}
               </select>
             </label>
             {kind === "shopping" && (
-              <label className="block text-sm text-white/70">
+              <label className="block text-sm text-foreground/70">
                 Reset checked-off items after
                 <select
                   value={resetIntervalDays ?? ""}
@@ -103,23 +101,23 @@ export function ListSettingsMenu({
                   }}
                   className={selectClass}
                 >
-                  <option value="" className="bg-white/80 text-background">
+                  <option value="" className="bg-white/80 text-field-ink">
                     Never
                   </option>
                   {RESET_INTERVAL_OPTIONS.map((opt) => (
-                    <option key={opt.days} value={opt.days} className="bg-white/80 text-background">
+                    <option key={opt.days} value={opt.days} className="bg-white/80 text-field-ink">
                       {opt.label}
                     </option>
                   ))}
                 </select>
               </label>
             )}
-            <div className="border-t border-white/10 pt-3">
+            <div className="border-t border-foreground/10 pt-3">
               <CollapsibleSection title="Categories">
                 <CategoryManager listId={listId} categories={categories} />
               </CollapsibleSection>
             </div>
-            <div className="border-t border-white/10 pt-3">
+            <div className="border-t border-foreground/10 pt-3">
               <button
                 type="button"
                 onClick={() => {

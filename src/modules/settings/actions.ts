@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { verifySession } from "@/lib/auth/dal";
 import { verifyPassword, hashPassword } from "@/lib/auth/password";
 import { createSession } from "@/lib/auth/session";
+import { THEMES, THEME_MODES } from "@/lib/themes";
 
 export type ActionState = { error: string } | { success: true } | undefined;
 
@@ -51,9 +52,29 @@ export async function changePassword(_prevState: ActionState, formData: FormData
   // proxy.ts can redirect at the edge without a DB call) — reissue it here
   // so the flag flips off immediately instead of waiting for the cookie's
   // natural 30-day expiry.
-  await createSession(user.id, false);
+  await createSession(user.id, false, user.theme, user.themeMode);
 
   return { success: true };
+}
+
+const SetThemeSchema = z.object({
+  theme: z.enum(THEMES),
+  themeMode: z.enum(THEME_MODES),
+});
+
+/** Theme + mode are baked into the session cookie (see session.ts) — reissue it here so the new look applies immediately. */
+export async function setTheme(rawTheme: string, rawThemeMode: string) {
+  const session = await verifySession();
+  const parsed = SetThemeSchema.safeParse({ theme: rawTheme, themeMode: rawThemeMode });
+  if (!parsed.success) return;
+
+  const user = await db.user.update({
+    where: { id: session.userId },
+    data: { theme: parsed.data.theme, themeMode: parsed.data.themeMode },
+    select: { mustChangePassword: true },
+  });
+  await createSession(session.userId, user.mustChangePassword, parsed.data.theme, parsed.data.themeMode);
+  revalidatePath("/", "layout");
 }
 
 /**

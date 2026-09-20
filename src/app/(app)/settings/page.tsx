@@ -7,7 +7,9 @@ import { getOtherUsers } from "@/modules/settings/queries";
 import { ChangePasswordForm } from "@/modules/settings/components/ChangePasswordForm";
 import { ListSharingSection } from "@/modules/settings/components/ListSharingSection";
 import { ContactSharingSection } from "@/modules/settings/components/ContactSharingSection";
+import { ThemePicker } from "@/modules/settings/components/ThemePicker";
 import { CollapsibleSection } from "@/components/CollapsibleSection";
+import { parseTheme, parseThemeMode } from "@/lib/themes";
 
 export default async function SettingsPage() {
   const user = await getCurrentUser();
@@ -28,12 +30,15 @@ export default async function SettingsPage() {
       )}
       {/* Open by default while a password change is required, so the forced
           flow doesn't hide its own fields behind a collapsed section. */}
+      <CollapsibleSection title="Appearance" defaultOpen>
+        <ThemePicker theme={parseTheme(user.theme)} themeMode={parseThemeMode(user.themeMode)} />
+      </CollapsibleSection>
       <CollapsibleSection title="Change password" defaultOpen={user.mustChangePassword}>
         <ChangePasswordForm />
       </CollapsibleSection>
       <CollapsibleSection title="Share your lists">
         <div className="space-y-3">
-          <p className="text-sm text-white/60">
+          <p className="text-sm text-foreground/60">
             Only you can change who your own lists are shared with. Anyone a list is shared with can fully edit it, same as you.
           </p>
           <ListSharingSection lists={ownedLists} otherUsers={otherUsers} />
@@ -41,7 +46,7 @@ export default async function SettingsPage() {
       </CollapsibleSection>
       <CollapsibleSection title="Share your contacts">
         <div className="space-y-3">
-          <p className="text-sm text-white/60">
+          <p className="text-sm text-foreground/60">
             Contact sharing is all-or-nothing and mutual — turning it on shares your whole address book with them, and theirs with you.
           </p>
           <ContactSharingSection otherUsers={otherUsers} sharedWithIds={contactSharedWithIds} />
@@ -50,7 +55,7 @@ export default async function SettingsPage() {
       {user.role === "admin" && (
         <Link
           href="/admin"
-          className="inline-flex items-center gap-2 rounded-md border border-white/15 px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+          className="inline-flex items-center gap-2 rounded-md border border-foreground/15 px-4 py-2 text-sm font-medium text-foreground/70 transition-colors hover:bg-foreground/10 hover:text-foreground"
         >
           <TreePine className="size-4" strokeWidth={1.75} />
           Admin

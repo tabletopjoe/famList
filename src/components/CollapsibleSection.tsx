@@ -25,7 +25,7 @@ export function CollapsibleSection({
       >
         <h2 className="text-lg font-medium">{title}</h2>
         <ChevronDown
-          className={`size-5 shrink-0 text-white/50 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`size-5 shrink-0 text-foreground/50 transition-transform ${open ? "rotate-180" : ""}`}
           strokeWidth={1.75}
         />
       </button>

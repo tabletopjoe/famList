@@ -28,7 +28,7 @@ export default async function ContactsPage({
       <CreateContactForm />
       <OwnershipFilterChips current={filter} hrefFor={(f) => `/contacts${f === "all" ? "" : `?filter=${f}`}`} />
       {contacts.length === 0 ? (
-        <p className="text-sm text-black/60 dark:text-white/60">{EMPTY_MESSAGE[filter]}</p>
+        <p className="text-sm text-foreground/60">{EMPTY_MESSAGE[filter]}</p>
       ) : (
         <div className="space-y-3">
           {contacts.map((contact) => (

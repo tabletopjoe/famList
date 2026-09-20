@@ -17,13 +17,13 @@ type EditableItem = {
 type Category = { id: string; name: string };
 
 const fieldClass =
-  "min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-background placeholder:text-background/40 disabled:opacity-50";
+  "min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-field-ink placeholder:text-field-ink/40 disabled:opacity-50";
 
 /** Label and input side by side, for every field except Notes — keeps rows compact so Notes gets the leftover height. */
 function FieldRow({ id, label, children }: { id: string; label: string; children: ReactNode }) {
   return (
     <div className="flex items-center gap-2">
-      <label htmlFor={id} className="w-20 shrink-0 text-sm text-white/70">
+      <label htmlFor={id} className="w-20 shrink-0 text-sm text-foreground/70">
         {label}
       </label>
       {children}
@@ -94,11 +94,11 @@ export function ItemEditForm({
         disabled={pending}
         className={fieldClass}
       >
-        <option value="" className="bg-white/80 text-background">
+        <option value="" className="bg-white/80 text-field-ink">
           None
         </option>
         {categories.map((c) => (
-          <option key={c.id} value={c.id} className="bg-white/80 text-background">
+          <option key={c.id} value={c.id} className="bg-white/80 text-field-ink">
             {c.name}
           </option>
         ))}
@@ -159,7 +159,7 @@ export function ItemEditForm({
   // room — those are the two kinds where it's the main thing being edited.
   const maximizeNotes = kind === "recipe" || kind === "notes";
   const notesField = (
-    <label htmlFor="item-edit-notes" className="block text-sm text-white/70">
+    <label htmlFor="item-edit-notes" className="block text-sm text-foreground/70">
       Notes
       <textarea
         id="item-edit-notes"
@@ -167,13 +167,13 @@ export function ItemEditForm({
         defaultValue={item.notes ?? ""}
         disabled={pending}
         rows={maximizeNotes ? 10 : 3}
-        className="mt-1 w-full resize-none rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-background placeholder:text-background/40 disabled:opacity-50"
+        className="mt-1 w-full resize-none rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-field-ink placeholder:text-field-ink/40 disabled:opacity-50"
       />
     </label>
   );
 
   return (
-    <div className="mt-3 rounded-lg border border-white/15 bg-card-background/70 p-4 shadow-xl backdrop-blur-md">
+    <div className="mt-3 rounded-lg border border-foreground/15 bg-card-background/70 p-4 shadow-xl backdrop-blur-md">
       <form action={formAction} className="space-y-3">
         {kind === "recipe" ? (
           <>
@@ -199,12 +199,12 @@ export function ItemEditForm({
         {addCategoryRow}
         {categoryError && <p className="text-sm text-red-400">{categoryError}</p>}
         {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
-        <div className="flex justify-end gap-2 border-t border-white/10 pt-3">
+        <div className="flex justify-end gap-2 border-t border-foreground/10 pt-3">
           <button
             type="button"
             onClick={onCancel}
             disabled={pending}
-            className="rounded-md px-3 py-1.5 text-sm text-white/70 hover:text-white disabled:opacity-50"
+            className="rounded-md px-3 py-1.5 text-sm text-foreground/70 hover:text-foreground disabled:opacity-50"
           >
             Cancel
           </button>

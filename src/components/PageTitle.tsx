@@ -16,7 +16,7 @@ export function PageTitle() {
   const pathname = usePathname();
 
   if (staticTitles[pathname]) {
-    return <span className="truncate text-sm font-medium text-white/80">{staticTitles[pathname]}</span>;
+    return <span className="truncate text-sm font-medium text-foreground/80">{staticTitles[pathname]}</span>;
   }
 
   const activeModule = modules.find(
@@ -29,7 +29,7 @@ export function PageTitle() {
     return (
       <Link
         href="/lists?view=all"
-        className="truncate text-sm font-medium text-white/80 hover:text-white hover:underline"
+        className="truncate text-sm font-medium text-foreground/80 hover:text-foreground hover:underline"
       >
         {activeModule.name}
       </Link>
@@ -37,7 +37,7 @@ export function PageTitle() {
   }
 
   return (
-    <span className="truncate text-sm font-medium text-white/80">
+    <span className="truncate text-sm font-medium text-foreground/80">
       {activeModule ? activeModule.name : "famList"}
     </span>
   );

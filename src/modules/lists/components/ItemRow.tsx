@@ -38,7 +38,7 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
   const [isPending, startTransition] = useTransition();
   const { deleteMode } = useDeleteMode();
   const iconButtonClass =
-    "text-black/40 hover:text-black/70 disabled:opacity-30 disabled:hover:text-black/40 dark:text-white/40 dark:hover:text-white/70 dark:disabled:hover:text-white/40";
+    "text-foreground/40 hover:text-foreground/70 disabled:opacity-30 disabled:hover:text-foreground/40";
 
   // Only shopping lists use "done" at all — everywhere else the checkbox
   // stays hidden even in delete mode, where deleting is a direct tap on the
@@ -46,9 +46,9 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
   // types.ts).
   const showCheckbox = kind === "shopping";
   const labelSpan = (
-    <span className={`flex-1 ${item.isDone ? "text-black/40 line-through dark:text-white/40" : ""}`}>
+    <span className={`flex-1 ${item.isDone ? "text-foreground/40 line-through" : ""}`}>
       {item.label}
-      {item.quantity && <span className="text-black/50 dark:text-white/50"> · {item.quantity}</span>}
+      {item.quantity && <span className="text-foreground/50"> · {item.quantity}</span>}
     </span>
   );
 
@@ -70,10 +70,11 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
                 toggleItem(listId, item.id, checked);
               });
             }}
-            // 8-digit hex (not the /85 opacity-modifier syntax) so this compiles to a
-            // plain color instead of oklab() — Tailwind's opacity modifier on an
-            // arbitrary color has no plain-color fallback for browsers that lack it.
-            className="size-4 shrink-0 accent-[#F4A261D9]"
+            // A named theme color (--color-accent, see globals.css), not an
+            // arbitrary hex value — Tailwind only generates the safe
+            // plain-color fallback (for browsers without the oklab() color
+            // function) for named colors, not one-off bracket values.
+            className="size-4 shrink-0 accent-accent/85"
           />
         )}
         {/* The text space between the checkbox and the icon group opens the edit form. */}
@@ -107,8 +108,8 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
                 title={item.isRecurring ? "Recurring — resets when checked off" : "One-off — stays checked"}
                 className={`relative ${
                   item.isRecurring
-                    ? "text-white/70 hover:text-white disabled:opacity-30"
-                    : "text-black/25 hover:text-black/50 disabled:opacity-30 dark:text-white/25 dark:hover:text-white/50"
+                    ? "text-foreground/70 hover:text-foreground disabled:opacity-30"
+                    : "text-foreground/25 hover:text-foreground/50 disabled:opacity-30"
                 }`}
               >
                 <Clock className="size-4" strokeWidth={1.75} />

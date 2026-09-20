@@ -59,9 +59,7 @@ export function ListControls({
       aria-label={sortPanelOpen ? "Hide sort options" : "Sort items"}
       title={sortPanelOpen ? "Hide sort options" : "Sort items"}
       className={`flex size-8 shrink-0 items-center justify-center rounded-md transition-colors ${
-        sortPanelOpen
-          ? "bg-white/15 text-white"
-          : "text-black/40 hover:text-black/70 dark:text-white/40 dark:hover:text-white/70"
+        sortPanelOpen ? "bg-foreground/15 text-foreground" : "text-foreground/40 hover:text-foreground/70"
       }`}
     >
       <ArrowUpDown className="size-4" strokeWidth={1.75} />
@@ -109,9 +107,7 @@ export function ListControls({
         aria-label={deleteMode ? "Done deleting items" : "Delete items"}
         title={deleteMode ? "Done deleting items" : "Delete items"}
         className={`flex size-8 items-center justify-center rounded-md transition-colors ${
-          deleteMode
-            ? "bg-red-600/15 text-red-500"
-            : "text-black/40 hover:text-red-600 dark:text-white/40 dark:hover:text-red-400"
+          deleteMode ? "bg-red-600/15 text-red-500" : "text-foreground/40 hover:text-red-600 dark:hover:text-red-400"
         }`}
       >
         <Trash2 className="size-4" strokeWidth={1.75} />
@@ -124,7 +120,7 @@ export function ListControls({
           disabled={isPending || totalCount === 0}
           aria-label={target ? "Check all items" : "Uncheck all items"}
           title={target ? "Check all items" : "Uncheck all items"}
-          className="flex size-8 items-center justify-center rounded-md text-black/40 transition-colors hover:text-black/70 disabled:opacity-30 disabled:hover:text-black/40 dark:text-white/40 dark:hover:text-white/70 dark:disabled:hover:text-white/40"
+          className="flex size-8 items-center justify-center rounded-md text-foreground/40 transition-colors hover:text-foreground/70 disabled:opacity-30 disabled:hover:text-foreground/40"
         >
           <RefreshCw className="size-4" strokeWidth={1.75} />
         </button>

@@ -18,10 +18,10 @@ export function CreateContactForm() {
   const [state, formAction, pending] = useActionState(action, undefined);
 
   const inputClass =
-    "rounded-md border border-black/10 px-3 py-2 text-sm dark:border-white/15 dark:bg-white/5";
+    "rounded-md border border-foreground/10 px-3 py-2 text-sm dark:border-foreground/15 dark:bg-foreground/5";
 
   return (
-    <div className="space-y-3 rounded-lg border border-black/10 p-4 dark:border-white/15">
+    <div className="space-y-3 rounded-lg border border-foreground/10 p-4 dark:border-foreground/15">
       <div className="flex items-center justify-between">
         <p className="font-medium">Add a contact</p>
         <button

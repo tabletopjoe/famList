@@ -123,23 +123,23 @@ export function ItemList({
                   aria-expanded={!collapsed}
                   className="flex w-full items-center justify-between gap-2 py-1 text-left"
                 >
-                  <span className="text-xs font-medium tracking-wide text-white/40 uppercase">
-                    {group.name} <span className="text-white/30">({group.ids.length})</span>
+                  <span className="text-xs font-medium tracking-wide text-foreground/40 uppercase">
+                    {group.name} <span className="text-foreground/30">({group.ids.length})</span>
                   </span>
                   <ChevronDown
-                    className={`size-3.5 shrink-0 text-white/40 transition-transform ${collapsed ? "" : "rotate-180"}`}
+                    className={`size-3.5 shrink-0 text-foreground/40 transition-transform ${collapsed ? "" : "rotate-180"}`}
                     strokeWidth={1.75}
                   />
                 </button>
                 {!collapsed && (
-                  <ul className="divide-y divide-black/10 dark:divide-white/15">{group.ids.map(renderRow)}</ul>
+                  <ul className="divide-y divide-foreground/10 dark:divide-foreground/15">{group.ids.map(renderRow)}</ul>
                 )}
               </div>
             );
           })}
         </div>
       ) : (
-        <ul className="divide-y divide-black/10 dark:divide-white/15">{visibleIds.map(renderRow)}</ul>
+        <ul className="divide-y divide-foreground/10 dark:divide-foreground/15">{visibleIds.map(renderRow)}</ul>
       )}
       {editingId &&
         (() => {

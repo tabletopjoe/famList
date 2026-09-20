@@ -24,6 +24,14 @@ model User {
   // property of the list itself (replaces the old global List.isPrimary).
   primaryListId      String?  @unique
   primaryList        List?    @relation("UserPrimaryList", fields: [primaryListId], references: [id], onDelete: SetNull)
+  // Display theme + light/dark mode — see THEMES in src/lib/themes.ts for
+  // the valid set and what each looks like. Plain strings + Zod validation
+  // (same pattern as List.kind), not Postgres enums, so adding a theme or
+  // mode is just a code change, no migration. Baked into the session cookie
+  // (see src/lib/auth/session.ts) so the root layout can paint the right
+  // theme without a DB round trip on every request.
+  theme              String   @default("eggplant")
+  themeMode          String   @default("dark")
   createdAt          DateTime @default(now())
 
   lists            List[]             @relation("ListCreatedBy")

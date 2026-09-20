@@ -44,7 +44,7 @@ export function CategoryManager({ listId, categories }: { listId: string; catego
   return (
     <div className="space-y-3">
       {order.length === 0 ? (
-        <p className="text-sm text-white/50">No categories yet.</p>
+        <p className="text-sm text-foreground/50">No categories yet.</p>
       ) : (
         <div className="space-y-1">
           {order.map((id) => {
@@ -58,15 +58,15 @@ export function CategoryManager({ listId, categories }: { listId: string; catego
                 style={
                   isDragging ? { transform: `translateY(${dragOffset}px)`, position: "relative", zIndex: 10 } : undefined
                 }
-                className={`flex items-center gap-2 rounded-md px-2 py-1.5 ${isDragging ? "bg-white/10" : ""}`}
+                className={`flex items-center gap-2 rounded-md px-2 py-1.5 ${isDragging ? "bg-foreground/10" : ""}`}
               >
-                <span className="flex-1 truncate text-sm text-white">{category.name}</span>
+                <span className="flex-1 truncate text-sm text-foreground">{category.name}</span>
                 <button
                   type="button"
                   onClick={() => startDeleteTransition(() => deleteCategory(listId, id))}
                   aria-label={`Delete category ${category.name}`}
                   title="Delete category"
-                  className="text-white/40 hover:text-red-400"
+                  className="text-foreground/40 hover:text-red-400"
                 >
                   <Trash2 className="size-4" strokeWidth={1.75} />
                 </button>
@@ -74,7 +74,7 @@ export function CategoryManager({ listId, categories }: { listId: string; catego
                   type="button"
                   aria-label={`Reorder ${category.name}`}
                   title="Drag to reorder"
-                  className="touch-none cursor-grab select-none px-1 text-white/40 hover:text-white/70 active:cursor-grabbing"
+                  className="touch-none cursor-grab select-none px-1 text-foreground/40 hover:text-foreground/70 active:cursor-grabbing"
                   {...dragHandlePropsFor(id)}
                 >
                   <Grip className="size-4" strokeWidth={1.75} />
@@ -84,7 +84,7 @@ export function CategoryManager({ listId, categories }: { listId: string; catego
           })}
         </div>
       )}
-      <div className="flex items-center gap-2 border-t border-white/10 pt-3">
+      <div className="flex items-center gap-2 border-t border-foreground/10 pt-3">
         <input
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
@@ -96,7 +96,7 @@ export function CategoryManager({ listId, categories }: { listId: string; catego
           }}
           placeholder="New category"
           disabled={addPending}
-          className="min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-background placeholder:text-background/40 disabled:opacity-50"
+          className="min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-field-ink placeholder:text-field-ink/40 disabled:opacity-50"
         />
         <button
           type="button"
