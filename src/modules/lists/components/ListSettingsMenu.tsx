@@ -6,6 +6,9 @@ import { setListKind, setListResetInterval, deleteList } from "../actions";
 import { LIST_KINDS, LIST_KIND_LABELS, RESET_INTERVAL_OPTIONS, type ListKind } from "../types";
 import { CollapsibleSection } from "@/components/CollapsibleSection";
 import { CategoryManager } from "./CategoryManager";
+import { ListShareManager } from "./ListShareManager";
+
+type OtherUser = { id: string; name: string };
 
 /**
  * List type + (for shopping lists) auto-reset interval. Opens as a glassy
@@ -23,6 +26,9 @@ export function ListSettingsMenu({
   resetIntervalDays,
   totalCount,
   categories,
+  isOwner,
+  otherUsers,
+  sharedWithIds,
 }: {
   listId: string;
   title: string;
@@ -30,6 +36,10 @@ export function ListSettingsMenu({
   resetIntervalDays: number | null;
   totalCount: number;
   categories: { id: string; name: string }[];
+  /** Only the owner manages a list's sharing — see setListShare. */
+  isOwner: boolean;
+  otherUsers: OtherUser[];
+  sharedWithIds: string[];
 }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -117,6 +127,13 @@ export function ListSettingsMenu({
                 <CategoryManager listId={listId} categories={categories} />
               </CollapsibleSection>
             </div>
+            {isOwner && (
+              <div className="border-t border-foreground/10 pt-3">
+                <CollapsibleSection title="Share with">
+                  <ListShareManager listId={listId} otherUsers={otherUsers} sharedWithIds={sharedWithIds} />
+                </CollapsibleSection>
+              </div>
+            )}
             <div className="border-t border-foreground/10 pt-3">
               <button
                 type="button"

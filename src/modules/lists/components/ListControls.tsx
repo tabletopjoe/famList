@@ -10,6 +10,8 @@ import { ListSettingsMenu } from "./ListSettingsMenu";
 import { chipClass } from "@/components/chipClass";
 import type { ListKind } from "../types";
 
+type OtherUser = { id: string; name: string };
+
 /**
  * Row of per-list controls, sitting under the title/back-link row and
  * above the add-item form. Normally the delete-mode toggle, the
@@ -28,6 +30,9 @@ export function ListControls({
   doneCount,
   totalCount,
   categories,
+  isOwner,
+  otherUsers,
+  sharedWithIds,
 }: {
   listId: string;
   title: string;
@@ -36,6 +41,9 @@ export function ListControls({
   doneCount: number;
   totalCount: number;
   categories: { id: string; name: string }[];
+  isOwner: boolean;
+  otherUsers: OtherUser[];
+  sharedWithIds: string[];
 }) {
   const { deleteMode, toggle } = useDeleteMode();
   const { editingId } = useItemEdit();
@@ -135,6 +143,9 @@ export function ListControls({
         resetIntervalDays={resetIntervalDays}
         totalCount={totalCount}
         categories={categories}
+        isOwner={isOwner}
+        otherUsers={otherUsers}
+        sharedWithIds={sharedWithIds}
       />
     </div>
   );

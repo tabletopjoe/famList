@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { getListWithItems } from "@/modules/lists/queries";
+import { getOtherUsers } from "@/modules/settings/queries";
 import { AddItemForm } from "@/modules/lists/components/AddItemForm";
 import { ItemList } from "@/modules/lists/components/ItemList";
 import { ListControls } from "@/modules/lists/components/ListControls";
@@ -14,11 +15,14 @@ import type { ListKind } from "@/modules/lists/types";
 export default async function ListDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
   const { id } = await params;
-  const list = await getListWithItems(id, user.id);
+  const [list, otherUsers] = await Promise.all([getListWithItems(id, user.id), getOtherUsers(user.id)]);
 
   if (!list) {
     notFound();
   }
+
+  const isOwner = list.createdById === user.id;
+  const sharedWithIds = list.shares.map((share) => share.userId);
 
   return (
     <div className="-mt-4 space-y-3 max-md:pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
@@ -44,6 +48,9 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
               doneCount={list.items.filter((item) => item.isDone).length}
               totalCount={list.items.length}
               categories={list.categories}
+              isOwner={isOwner}
+              otherUsers={otherUsers}
+              sharedWithIds={sharedWithIds}
             />
             <AddItemForm listId={list.id} kind={list.kind as ListKind} />
             {list.items.length === 0 ? (
