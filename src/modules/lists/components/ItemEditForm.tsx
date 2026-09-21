@@ -1,9 +1,14 @@
 "use client";
 
 import { useActionState, useState, useTransition, type ReactNode } from "react";
-import { Plus } from "lucide-react";
+import { ExternalLink, Plus } from "lucide-react";
 import { updateItem, createCategory, type ActionState } from "../actions";
 import type { ListKind } from "../types";
+
+/** A bare domain (e.g. "example.com/recipe") would otherwise resolve relative to this app's own origin. */
+function externalHref(url: string): string {
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+}
 
 type EditableItem = {
   id: string;
@@ -65,6 +70,9 @@ export function ItemEditForm({
   // right away — Save still has to be pressed to actually persist the
   // assignment, same as Name/Quantity/Notes/Link.
   const [categoryId, setCategoryId] = useState(item.categoryId ?? "");
+  // Also controlled (unlike Name/Quantity/Notes) so the launch icon beside
+  // it reflects whatever's currently typed, not just the last-saved link.
+  const [link, setLink] = useState(item.link ?? "");
   const [newCategoryName, setNewCategoryName] = useState("");
   const [categoryError, setCategoryError] = useState<string | null>(null);
   const [categoryPending, startCategoryTransition] = useTransition();
@@ -150,9 +158,33 @@ export function ItemEditForm({
       />
     </FieldRow>
   );
+  const trimmedLink = link.trim();
   const linkField = (
     <FieldRow id="item-edit-link" label="Link">
-      <input id="item-edit-link" name="link" defaultValue={item.link ?? ""} disabled={pending} className={fieldClass} />
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        {trimmedLink ? (
+          <a
+            href={externalHref(trimmedLink)}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open link"
+            title="Open link"
+            className="shrink-0 text-foreground/50 transition-colors hover:text-foreground active:text-foreground"
+          >
+            <ExternalLink className="size-4" strokeWidth={1.75} />
+          </a>
+        ) : (
+          <ExternalLink className="size-4 shrink-0 text-foreground/20" strokeWidth={1.75} aria-hidden />
+        )}
+        <input
+          id="item-edit-link"
+          name="link"
+          value={link}
+          onChange={(e) => setLink(e.target.value)}
+          disabled={pending}
+          className={fieldClass}
+        />
+      </div>
     </FieldRow>
   );
   // Recipe and notes lists get the most out of this form when Notes has the
