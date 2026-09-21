@@ -3,12 +3,8 @@
 import { redirect } from "next/navigation";
 import * as z from "zod";
 import { db } from "@/lib/db";
-import { verifyPassword } from "@/lib/auth/password";
+import { verifyPassword, hashPassword } from "@/lib/auth/password";
 import { createSession, deleteSession } from "@/lib/auth/session";
-
-// There's deliberately no public sign-up action here. This app is hosted
-// for the family, not the internet at large — accounts are created via
-// `npm run db:seed` (see prisma/seed.ts). Add family members there.
 
 const LoginSchema = z.object({
   email: z.email({ error: "Enter a valid email." }),
@@ -50,4 +46,49 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
 export async function logout() {
   await deleteSession();
   redirect("/login");
+}
+
+const SignupSchema = z
+  .object({
+    name: z.string().trim().min(1, { error: "Enter your name." }).max(100),
+    email: z.email({ error: "Enter a valid email." }),
+    password: z.string().min(8, { error: "Password must be at least 8 characters." }),
+    confirmPassword: z.string().min(1, { error: "Re-enter your password." }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    error: "Password and confirmation don't match.",
+    path: ["confirmPassword"],
+  });
+
+export type SignupState = { error: string } | undefined;
+
+/** Self-service signup, open to anyone — new accounts land as plain "member"s (never "admin") with mustChangePassword unset, since they've already picked their own. */
+export async function signup(_prevState: SignupState, formData: FormData): Promise<SignupState> {
+  const parsed = SignupSchema.safeParse({
+    name: formData.get("name"),
+    email: formData.get("email"),
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Check the form and try again." };
+  }
+
+  const existing = await db.user.findUnique({ where: { email: parsed.data.email } });
+  if (existing) {
+    return { error: "An account with that email already exists." };
+  }
+
+  const passwordHash = await hashPassword(parsed.data.password);
+  const user = await db.user.create({
+    data: {
+      name: parsed.data.name,
+      email: parsed.data.email,
+      passwordHash,
+      role: "member",
+    },
+  });
+
+  await createSession(user.id, user.mustChangePassword, user.theme, user.themeMode);
+  redirect("/");
 }

@@ -9,7 +9,7 @@ import { readSession } from "@/lib/auth/session";
 // data query still calls verifySession()/getCurrentUser() from
 // `@/lib/auth/dal`, which is what actually gates access to data.
 
-const publicRoutes = ["/login"];
+const publicRoutes = ["/login", "/signup"];
 // Always passes straight through, with none of the redirect rules below —
 // notably not the "public route + session exists" one, since this route's
 // whole job is to clear a session that LOOKS valid (signature checks out)
