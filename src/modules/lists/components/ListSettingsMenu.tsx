@@ -61,7 +61,7 @@ export function ListSettingsMenu({
         aria-expanded={open}
         aria-label="List settings"
         title="List settings"
-        className={`flex size-8 items-center justify-center rounded-md transition-colors ${
+        className={`flex size-8 items-center justify-center rounded-md transition-colors active:bg-foreground/25 ${
           open ? "bg-foreground/15 text-foreground" : "text-foreground/40 hover:text-foreground/70"
         }`}
       >
@@ -127,7 +127,7 @@ export function ListSettingsMenu({
                   }
                 }}
                 disabled={isPending}
-                className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 disabled:opacity-50"
+                className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 active:text-red-200 disabled:opacity-50"
               >
                 <Trash2 className="size-4" strokeWidth={1.75} />
                 Delete list

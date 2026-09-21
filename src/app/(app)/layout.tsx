@@ -41,7 +41,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                   type="submit"
                   aria-label="Log out"
                   title="Log out"
-                  className="flex size-8 items-center justify-center rounded-md text-foreground/60 transition-colors hover:bg-foreground/10 hover:text-foreground"
+                  className="flex size-8 items-center justify-center rounded-md text-foreground/60 transition-colors hover:bg-foreground/10 hover:text-foreground active:bg-foreground/20"
                 >
                   <LogOut className="size-4" strokeWidth={1.75} />
                 </button>

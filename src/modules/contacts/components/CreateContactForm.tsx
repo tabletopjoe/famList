@@ -30,7 +30,7 @@ export function CreateContactForm() {
           aria-expanded={expanded}
           aria-label={expanded ? "Close the add-contact form" : "Add a contact"}
           title={expanded ? "Close" : "Add a contact"}
-          className="flex size-9 shrink-0 items-center justify-center rounded-md bg-foreground text-background"
+          className="flex size-9 shrink-0 items-center justify-center rounded-md bg-foreground text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80"
         >
           <Plus className={`size-4 transition-transform ${expanded ? "rotate-45" : ""}`} strokeWidth={2} />
         </button>
@@ -91,7 +91,7 @@ export function CreateContactForm() {
             <button
               type="submit"
               disabled={pending}
-              className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background disabled:opacity-50"
+              className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
             >
               {pending ? "Saving…" : "Save contact"}
             </button>

@@ -66,7 +66,7 @@ export function CategoryManager({ listId, categories }: { listId: string; catego
                   onClick={() => startDeleteTransition(() => deleteCategory(listId, id))}
                   aria-label={`Delete category ${category.name}`}
                   title="Delete category"
-                  className="text-foreground/40 hover:text-red-400"
+                  className="text-foreground/40 hover:text-red-400 active:text-red-500"
                 >
                   <Trash2 className="size-4" strokeWidth={1.75} />
                 </button>
@@ -74,7 +74,7 @@ export function CategoryManager({ listId, categories }: { listId: string; catego
                   type="button"
                   aria-label={`Reorder ${category.name}`}
                   title="Drag to reorder"
-                  className="touch-none cursor-grab select-none px-1 text-foreground/40 hover:text-foreground/70 active:cursor-grabbing"
+                  className="touch-none cursor-grab select-none px-1 text-foreground/40 hover:text-foreground/70 active:cursor-grabbing active:text-foreground"
                   {...dragHandlePropsFor(id)}
                 >
                   <Grip className="size-4" strokeWidth={1.75} />
@@ -104,7 +104,7 @@ export function CategoryManager({ listId, categories }: { listId: string; catego
           disabled={addPending}
           aria-label="Add category"
           title="Add category"
-          className="flex size-8 shrink-0 items-center justify-center rounded-md bg-foreground text-background disabled:opacity-50"
+          className="flex size-8 shrink-0 items-center justify-center rounded-md bg-foreground text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
         >
           <Plus className="size-4" strokeWidth={2} />
         </button>

@@ -39,7 +39,7 @@ export function AddItemForm({ listId, kind }: { listId: string; kind: ListKind }
           disabled={pending}
           aria-label="Add item"
           title="Add item"
-          className="flex w-[38px] shrink-0 items-center justify-center rounded-md bg-foreground text-background disabled:opacity-50"
+          className="flex w-[38px] shrink-0 items-center justify-center rounded-md bg-foreground text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
         >
           <Plus className="size-4" strokeWidth={2} />
         </button>

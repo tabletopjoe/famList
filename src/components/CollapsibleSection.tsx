@@ -21,7 +21,7 @@ export function CollapsibleSection({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between gap-3 text-left"
+        className="-mx-2 flex w-full items-center justify-between gap-3 rounded-md px-2 py-1 text-left transition-colors hover:bg-foreground/5 active:bg-foreground/10"
       >
         <h2 className="text-lg font-medium">{title}</h2>
         <ChevronDown

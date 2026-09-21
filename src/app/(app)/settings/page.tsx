@@ -55,7 +55,7 @@ export default async function SettingsPage() {
       {user.role === "admin" && (
         <Link
           href="/admin"
-          className="inline-flex items-center gap-2 rounded-md border border-foreground/15 px-4 py-2 text-sm font-medium text-foreground/70 transition-colors hover:bg-foreground/10 hover:text-foreground"
+          className="inline-flex items-center gap-2 rounded-md border border-foreground/15 px-4 py-2 text-sm font-medium text-foreground/70 transition-colors hover:bg-foreground/10 hover:text-foreground active:bg-foreground/20"
         >
           <TreePine className="size-4" strokeWidth={1.75} />
           Admin

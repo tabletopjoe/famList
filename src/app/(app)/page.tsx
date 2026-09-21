@@ -13,7 +13,7 @@ export default async function DashboardPage() {
           <Link
             key={mod.key}
             href={mod.href}
-            className="rounded-lg border border-foreground/10 p-5 transition hover:border-foreground/30 dark:border-foreground/15 dark:hover:border-foreground/40"
+            className="rounded-lg border border-foreground/10 p-5 transition hover:border-foreground/30 active:bg-foreground/5 dark:border-foreground/15 dark:hover:border-foreground/40"
           >
             <p className="text-lg font-medium">
               {mod.icon} {mod.name}

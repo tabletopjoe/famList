@@ -61,7 +61,7 @@ export function ContactCard({ contact }: ContactCardProps) {
           }
         }}
         disabled={isPending}
-        className="text-sm text-foreground/40 hover:text-red-600 disabled:opacity-50"
+        className="text-sm text-foreground/40 hover:text-red-600 active:text-red-700 disabled:opacity-50"
         aria-label={`Delete ${fullName}`}
       >
         ✕

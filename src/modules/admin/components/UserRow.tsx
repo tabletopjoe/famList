@@ -43,7 +43,7 @@ export function UserRow({ user, isSelf }: { user: User; isSelf: boolean }) {
             <button
               type="submit"
               disabled={resetPending}
-              className="rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background disabled:opacity-50"
+              className="rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
             >
               Reset password
             </button>

@@ -26,14 +26,18 @@
 }
 
 /* Eggplant — the original theme. Dark mode is pixel-identical to the old
-   unconditional :root values above. */
-:root[data-theme="eggplant"] {
+   unconditional :root values above.
+   Deliberately NOT `:root[data-theme="…"]` — these need to apply to any
+   element with these attributes, not just <html>, so ThemePicker's preview
+   swatches (a nested div carrying its own data-theme/.dark) get their own
+   real colors instead of inheriting whatever theme the page itself is on. */
+[data-theme="eggplant"] {
   --background: #fbf3f8;
   --foreground: #241220;
   --card-background: #ffffff;
   --accent: #b5651d;
 }
-:root[data-theme="eggplant"].dark {
+[data-theme="eggplant"].dark {
   --background: #241220;
   --foreground: #ffffff;
   --card-background: #3a2434;
@@ -41,13 +45,13 @@
 }
 
 /* Fern — green. */
-:root[data-theme="fern"] {
+[data-theme="fern"] {
   --background: #f3f8ee;
   --foreground: #16261a;
   --card-background: #ffffff;
   --accent: #b9821f;
 }
-:root[data-theme="fern"].dark {
+[data-theme="fern"].dark {
   --background: #16231a;
   --foreground: #eef7ee;
   --card-background: #223a29;
@@ -55,13 +59,13 @@
 }
 
 /* Rust — red-orange. */
-:root[data-theme="rust"] {
+[data-theme="rust"] {
   --background: #fdf3ee;
   --foreground: #2a1710;
   --card-background: #ffffff;
   --accent: #2f7d7d;
 }
-:root[data-theme="rust"].dark {
+[data-theme="rust"].dark {
   --background: #2a1710;
   --foreground: #fdf1e7;
   --card-background: #402318;
@@ -69,13 +73,13 @@
 }
 
 /* Ocean — blue. */
-:root[data-theme="ocean"] {
+[data-theme="ocean"] {
   --background: #eef6fb;
   --foreground: #0f1f2e;
   --card-background: #ffffff;
   --accent: #c97f2e;
 }
-:root[data-theme="ocean"].dark {
+[data-theme="ocean"].dark {
   --background: #0f1f2e;
   --foreground: #eaf4fb;
   --card-background: #17324a;

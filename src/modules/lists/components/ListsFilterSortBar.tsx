@@ -41,7 +41,7 @@ export function ListsFilterSortBar({
         href={hrefFor({ panel: panel === "filter" ? "sort" : "filter", filter, sort, dir })}
         aria-label={panel === "filter" ? "Switch to sorting" : "Switch to filtering"}
         title={panel === "filter" ? "Sort lists" : "Filter lists"}
-        className="flex size-8 shrink-0 items-center justify-center rounded-md text-foreground/60 transition-colors hover:bg-foreground/10 hover:text-foreground"
+        className="flex size-8 shrink-0 items-center justify-center rounded-md text-foreground/60 transition-colors hover:bg-foreground/10 hover:text-foreground active:bg-foreground/20"
       >
         {panel === "filter" ? (
           <Filter className="size-4" strokeWidth={1.75} />

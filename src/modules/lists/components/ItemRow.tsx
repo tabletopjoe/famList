@@ -38,7 +38,7 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
   const [isPending, startTransition] = useTransition();
   const { deleteMode } = useDeleteMode();
   const iconButtonClass =
-    "text-foreground/40 hover:text-foreground/70 disabled:opacity-30 disabled:hover:text-foreground/40";
+    "text-foreground/40 hover:text-foreground/70 active:text-foreground disabled:opacity-30 disabled:hover:text-foreground/40";
 
   // Only shopping lists use "done" at all — everywhere else the checkbox
   // stays hidden even in delete mode, where deleting is a direct tap on the
@@ -89,7 +89,7 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
             disabled={isPending}
             aria-label={`Delete ${item.label}`}
             title="Delete item"
-            className="text-red-500 hover:text-red-600 disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300"
+            className="text-red-500 hover:text-red-600 active:text-red-700 disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300 dark:active:text-red-200"
           >
             <Trash2 className="size-4" strokeWidth={1.75} />
           </button>
@@ -106,7 +106,7 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
                 aria-pressed={item.isRecurring}
                 aria-label={item.isRecurring ? `Mark ${item.label} as a one-off item` : `Mark ${item.label} as recurring`}
                 title={item.isRecurring ? "Recurring — resets when checked off" : "One-off — stays checked"}
-                className={`relative ${
+                className={`relative active:opacity-60 ${
                   item.isRecurring
                     ? "text-foreground/70 hover:text-foreground disabled:opacity-30"
                     : "text-foreground/25 hover:text-foreground/50 disabled:opacity-30"

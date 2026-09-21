@@ -51,7 +51,7 @@ function NavIcon({ href, label, Icon, active }: NavItem) {
       aria-label={label}
       title={label}
       style={iconButtonStyle}
-      className={`flex items-center justify-center rounded-md transition-colors ${
+      className={`flex items-center justify-center rounded-md transition-colors active:bg-foreground/25 ${
         active ? "bg-foreground/15" : "hover:bg-foreground/10"
       }`}
     >

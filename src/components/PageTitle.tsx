@@ -29,7 +29,7 @@ export function PageTitle() {
     return (
       <Link
         href="/lists?view=all"
-        className="truncate text-sm font-medium text-foreground/80 hover:text-foreground hover:underline"
+        className="truncate text-sm font-medium text-foreground/80 hover:text-foreground hover:underline active:opacity-60"
       >
         {activeModule.name}
       </Link>

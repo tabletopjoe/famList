@@ -43,7 +43,7 @@ export function ThemePicker({ theme, themeMode }: { theme: Theme; themeMode: The
             aria-pressed={theme === t}
             aria-label={THEME_LABELS[t]}
             title={THEME_LABELS[t]}
-            className="flex flex-col items-center gap-1.5 disabled:opacity-50"
+            className="flex flex-col items-center gap-1.5 active:opacity-70 disabled:opacity-50"
           >
             <span
               className={`relative flex items-center justify-center rounded-full p-0.5 ${
@@ -70,7 +70,9 @@ export function ThemePicker({ theme, themeMode }: { theme: Theme; themeMode: The
             disabled={isPending}
             aria-pressed={themeMode === mode}
             className={`rounded-full px-3 py-1 text-sm capitalize transition-colors ${
-              themeMode === mode ? "bg-foreground/15 text-foreground" : "text-foreground/60 hover:text-foreground"
+              themeMode === mode
+                ? "bg-foreground/15 text-foreground active:bg-foreground/25"
+                : "text-foreground/60 hover:text-foreground active:bg-foreground/10"
             }`}
           >
             {mode}

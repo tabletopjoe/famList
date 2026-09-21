@@ -127,7 +127,7 @@ export function ItemEditForm({
         disabled={categoryPending}
         aria-label="Add category"
         title="Add category"
-        className="flex size-8 shrink-0 items-center justify-center rounded-md bg-foreground text-background disabled:opacity-50"
+        className="flex size-8 shrink-0 items-center justify-center rounded-md bg-foreground text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
       >
         <Plus className="size-4" strokeWidth={2} />
       </button>
@@ -204,14 +204,14 @@ export function ItemEditForm({
             type="button"
             onClick={onCancel}
             disabled={pending}
-            className="rounded-md px-3 py-1.5 text-sm text-foreground/70 hover:text-foreground disabled:opacity-50"
+            className="rounded-md px-3 py-1.5 text-sm text-foreground/70 hover:text-foreground active:opacity-70 disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={pending}
-            className="rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background disabled:opacity-50"
+            className="rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
           >
             Save
           </button>
