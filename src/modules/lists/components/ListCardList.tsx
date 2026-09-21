@@ -38,7 +38,7 @@ export function ListCardList({
   );
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {order.map((id) => {
         const list = listsById.get(id);
         if (!list) return null;

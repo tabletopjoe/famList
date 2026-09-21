@@ -2,17 +2,22 @@ import "server-only";
 import { db } from "@/lib/db";
 import type { OwnershipFilter } from "@/components/OwnershipFilterChips";
 import type { ListItemOrderByWithRelationInput, ListOrderByWithRelationInput } from "@/generated/prisma/models";
-import type { ListSort, ListSortDir } from "./types";
+import type { ListKind, ListSort, ListSortDir } from "./types";
 
 /** A list is visible to its creator, or to anyone it's been explicitly shared with. */
 export function visibleToUser(userId: string) {
   return { OR: [{ createdById: userId }, { shares: { some: { userId } } }] };
 }
 
-function whereForFilter(userId: string, filter: OwnershipFilter) {
-  if (filter === "mine") return { createdById: userId };
-  if (filter === "shared") return { createdById: { not: userId }, shares: { some: { userId } } };
-  return visibleToUser(userId);
+/** Ownership and the "Type" chip filter independently — kindFilter (if any) just ANDs a kind match on top of whichever ownership scope applies. */
+function whereForFilter(userId: string, filter: OwnershipFilter, kindFilter: ListKind | null) {
+  const ownership =
+    filter === "mine"
+      ? { createdById: userId }
+      : filter === "shared"
+        ? { createdById: { not: userId }, shares: { some: { userId } } }
+        : visibleToUser(userId);
+  return kindFilter ? { ...ownership, kind: kindFilter } : ownership;
 }
 
 /** "custom" is drag order (List.position) and ignores dir — the rest are one-off query sorts — see ListSort in types.ts. */
@@ -28,9 +33,10 @@ export function getLists(
   filter: OwnershipFilter = "all",
   sort: ListSort = "custom",
   dir: ListSortDir = "asc",
+  kindFilter: ListKind | null = null,
 ) {
   return db.list.findMany({
-    where: whereForFilter(userId, filter),
+    where: whereForFilter(userId, filter, kindFilter),
     orderBy: orderByForSort(sort, dir),
     include: { _count: { select: { items: true } } },
   });

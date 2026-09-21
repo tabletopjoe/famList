@@ -21,6 +21,11 @@ export const LIST_KIND_LABELS: Record<ListKind, string> = {
  * rename, delete, or add to them freely afterward same as any other
  * category. Kinds not listed here (collection, notes) start with none.
  */
+/** The lists-index "Type" filter chip's value — parsed from the `type` search param; absent/invalid means no type filter. */
+export function parseListKindFilter(raw: string | undefined): ListKind | null {
+  return (LIST_KINDS as readonly string[]).includes(raw ?? "") ? (raw as ListKind) : null;
+}
+
 export const PRESET_CATEGORIES: Partial<Record<ListKind, string[]>> = {
   shopping: ["Produce", "Dairy & Eggs", "Meat & Seafood", "Bakery", "Frozen", "Pantry", "Household", "Other"],
   recipe: ["Breakfast", "Dessert", "Entree", "Soup", "Sauces", "Sides"],

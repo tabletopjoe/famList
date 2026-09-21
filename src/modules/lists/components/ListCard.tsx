@@ -43,7 +43,7 @@ export const ListCard = forwardRef<HTMLDivElement, ListCardProps>(function ListC
     <div
       ref={ref}
       style={isDragging ? { transform: `translateY(${dragOffset}px)`, position: "relative", zIndex: 10 } : undefined}
-      className={`flex items-center justify-between gap-3 rounded-lg border border-foreground/15 bg-card-background px-4 py-2 ${isDragging ? "shadow-xl" : ""}`}
+      className={`flex items-center justify-between gap-3 rounded-lg border border-foreground/15 bg-card-background px-4 py-1 ${isDragging ? "shadow-xl" : ""}`}
     >
       <Link href={`/lists/${list.id}`} className="flex-1 active:opacity-60">
         <p className="font-medium">{list.title}</p>
