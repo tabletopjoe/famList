@@ -39,7 +39,7 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
       </div>
       <DeleteModeProvider>
         <ItemEditProvider>
-          <ItemSortProvider>
+          <ItemSortProvider listId={list.id}>
             <ListControls
               listId={list.id}
               title={list.title}

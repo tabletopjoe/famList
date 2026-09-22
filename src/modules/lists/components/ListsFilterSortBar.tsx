@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect } from "react";
 import Link from "next/link";
 import { Filter, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { OWNERSHIP_FILTERS, OWNERSHIP_FILTER_LABELS, type OwnershipFilter } from "@/components/OwnershipFilterChips";
@@ -25,6 +28,17 @@ function nextKindFilter(current: ListKind | null): ListKind | null {
   return KIND_FILTER_CYCLE[(i + 1) % KIND_FILTER_CYCLE.length];
 }
 
+/**
+ * Cookie the lists page reads (see ListsPage) whenever a plain entry point
+ * (the nav icon, the top bar's title, the list-detail page's back button)
+ * omits filter/type/sort/dir/panel entirely — that's how "no preference
+ * given, use what I had last" is told apart from "explicitly picked the
+ * default," which is why every link this component generates always
+ * spells out all five params below, never omitting one just because it
+ * matches a default.
+ */
+const VIEW_COOKIE = "famlist_lists_view";
+
 function hrefFor(next: {
   panel: Panel;
   filter: OwnershipFilter;
@@ -33,23 +47,14 @@ function hrefFor(next: {
   dir: ListSortDir;
 }) {
   const params = new URLSearchParams({ view: "all" });
-  // Sort is the default panel now — only "filter" needs to be spelled out.
-  if (next.panel === "filter") params.set("panel", "filter");
-  if (next.filter !== "all") params.set("filter", next.filter);
-  if (next.type) params.set("type", next.type);
-  if (next.sort !== "custom") params.set("sort", next.sort);
-  if (next.sort !== "custom" && next.dir !== DEFAULT_SORT_DIR[next.sort]) params.set("dir", next.dir);
+  params.set("panel", next.panel);
+  params.set("filter", next.filter);
+  params.set("type", next.type ?? "none");
+  params.set("sort", next.sort);
+  params.set("dir", next.dir);
   return `/lists?${params.toString()}`;
 }
 
-/**
- * Replaces the old always-visible filter chip row: one icon toggles which
- * chip row shows (filter vs. sort), and toggling never disturbs whichever
- * filter/sort is currently active underneath — both stay in effect
- * regardless of which row is on screen. Both rows are single-line and
- * horizontally scrollable rather than wrapping, so this bar's height never
- * changes and eats into the list below it.
- */
 export function ListsFilterSortBar({
   panel,
   filter,
@@ -64,6 +69,19 @@ export function ListsFilterSortBar({
   sort: ListSort;
   dir: ListSortDir;
 }) {
+  // Mirrors whatever's currently showing into VIEW_COOKIE — including when
+  // this state came FROM that same cookie (a harmless rewrite), since a
+  // Server Component can't write cookies during a plain render itself.
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set("filter", filter);
+    params.set("type", typeFilter ?? "none");
+    params.set("sort", sort);
+    params.set("dir", dir);
+    params.set("panel", panel);
+    document.cookie = `${VIEW_COOKIE}=${encodeURIComponent(params.toString())}; path=/lists; max-age=34560000`;
+  }, [filter, typeFilter, sort, dir, panel]);
+
   return (
     <div className="flex items-center gap-2">
       <Link
