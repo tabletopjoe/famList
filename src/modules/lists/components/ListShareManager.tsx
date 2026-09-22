@@ -3,18 +3,17 @@
 import { useTransition } from "react";
 import { X } from "lucide-react";
 import { setListShare } from "@/modules/settings/actions";
+import { UserSearchPicker } from "@/components/UserSearchPicker";
 
 type OtherUser = { id: string; name: string };
-
-const selectClass =
-  "w-full rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-field-ink disabled:opacity-50";
 
 /**
  * Per-list sharing, scoped to just this one list — lives inside
  * ListSettingsMenu's "Share with" CollapsibleSection, owner-only (see the
  * caller). Same underlying setListShare action as the cross-list Settings
  * page version, just without that one's person-then-lists flow: there's
- * only one list here, so a plain add-dropdown + removable roster is enough.
+ * only one list here, so a search field to add someone + a removable
+ * roster is enough.
  */
 export function ListShareManager({
   listId,
@@ -37,24 +36,12 @@ export function ListShareManager({
   return (
     <div className="space-y-3">
       {addableUsers.length > 0 && (
-        <select
-          value=""
+        <UserSearchPicker
+          users={addableUsers}
+          onSelect={(userId) => startTransition(() => setListShare(listId, userId, true))}
+          placeholder="Share with…"
           disabled={isPending}
-          onChange={(e) => {
-            const userId = e.target.value;
-            if (userId) startTransition(() => setListShare(listId, userId, true));
-          }}
-          className={selectClass}
-        >
-          <option value="" className="bg-white/80 text-field-ink">
-            Share with…
-          </option>
-          {addableUsers.map((u) => (
-            <option key={u.id} value={u.id} className="bg-white/80 text-field-ink">
-              {u.name}
-            </option>
-          ))}
-        </select>
+        />
       )}
       {sharedUsers.length > 0 ? (
         <ul className="space-y-1">

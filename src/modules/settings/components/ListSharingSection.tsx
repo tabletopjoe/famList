@@ -3,18 +3,16 @@
 import { useState, useTransition } from "react";
 import { setListShare } from "../actions";
 import { chipClass } from "@/components/chipClass";
+import { UserSearchPicker } from "@/components/UserSearchPicker";
 
 type OtherUser = { id: string; name: string };
 type OwnedList = { id: string; title: string; shares: { userId: string }[] };
 
-const selectClass =
-  "w-full rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-field-ink disabled:opacity-50";
-
 /**
  * Person-first rather than the old list-first grid (a checkbox per user on
  * every list row) — that stopped scaling once there were more than a
- * handful of lists. Pick someone (either fresh, via the dropdown, or from
- * the roster of people you already share something with), then toggle
+ * handful of lists. Pick someone (either fresh, via the search field, or
+ * from the roster of people you already share something with), then toggle
  * which of your lists they can see. Only one person "focused" at a time —
  * see focusedUserId below.
  */
@@ -71,22 +69,11 @@ export function ListSharingSection({ lists, otherUsers }: { lists: OwnedList[]; 
   return (
     <div className="space-y-3">
       {addableUsers.length > 0 && (
-        <select
-          value=""
-          onChange={(e) => {
-            if (e.target.value) setFocusedUserId(e.target.value);
-          }}
-          className={selectClass}
-        >
-          <option value="" className="bg-white/80 text-field-ink">
-            Share with someone new…
-          </option>
-          {addableUsers.map((u) => (
-            <option key={u.id} value={u.id} className="bg-white/80 text-field-ink">
-              {u.name}
-            </option>
-          ))}
-        </select>
+        <UserSearchPicker
+          users={addableUsers}
+          onSelect={setFocusedUserId}
+          placeholder="Share with someone new…"
+        />
       )}
       {alreadySharedUsers.length > 0 && (
         <div className="flex flex-wrap gap-2">
