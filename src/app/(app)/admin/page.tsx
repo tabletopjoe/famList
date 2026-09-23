@@ -1,7 +1,7 @@
 import { requireAdmin } from "@/lib/auth/dal";
 import { getAllUsers } from "@/modules/admin/queries";
 import { CreateUserForm } from "@/modules/admin/components/CreateUserForm";
-import { UserRow } from "@/modules/admin/components/UserRow";
+import { UserManager } from "@/modules/admin/components/UserManager";
 
 export default async function AdminPage() {
   const currentUser = await requireAdmin();
@@ -15,12 +15,8 @@ export default async function AdminPage() {
         <CreateUserForm />
       </section>
       <section className="space-y-3">
-        <h2 className="text-lg font-medium">Users</h2>
-        <div className="space-y-3">
-          {users.map((user) => (
-            <UserRow key={user.id} user={user} isSelf={user.id === currentUser.id} />
-          ))}
-        </div>
+        <h2 className="text-lg font-medium">Manage users</h2>
+        <UserManager users={users} currentUserId={currentUser.id} />
       </section>
     </div>
   );

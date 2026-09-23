@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useTransition } from "react";
-import { resetUserPassword, setUserRole, type AdminActionState } from "../actions";
+import { resetUserPassword, setUserRole, deleteUser, type AdminActionState } from "../actions";
 
 type User = {
   id: string;
@@ -48,6 +48,23 @@ export function UserRow({ user, isSelf }: { user: User; isSelf: boolean }) {
               Reset password
             </button>
           </form>
+          <button
+            type="button"
+            onClick={() => {
+              if (
+                confirm(
+                  `Delete ${user.name}'s account? This permanently removes their lists, contacts, and access. This can't be undone.`,
+                )
+              ) {
+                startTransition(() => deleteUser(user.id));
+              }
+            }}
+            disabled={isSelf || isPending}
+            title={isSelf ? "You can't delete your own account" : "Delete account"}
+            className="rounded-md px-3 py-1.5 text-sm font-medium text-red-400 hover:text-red-300 active:text-red-200 disabled:opacity-50"
+          >
+            Delete
+          </button>
         </div>
       </div>
       {user.mustChangePassword && (

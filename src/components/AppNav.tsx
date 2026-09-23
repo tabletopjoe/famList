@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, ClipboardList, User, Settings, type LucideIcon } from "lucide-react";
+import { Home, ClipboardList, Settings, type LucideIcon } from "lucide-react";
 import { modules } from "@/modules/registry";
 
 const iconButtonStyle = {
@@ -11,11 +11,16 @@ const iconButtonStyle = {
 };
 
 // Simple monotone line icons per module. Keyed by registry `key` so this
-// stays easy to extend alongside src/modules/registry.ts.
+// stays easy to extend alongside src/modules/registry.ts. Contacts is
+// deliberately left out — it's reached only from the home page, not this
+// nav bar, so it has no icon here.
 const moduleIcons: Record<string, LucideIcon> = {
   lists: ClipboardList,
-  contacts: User,
 };
+
+// Modules that appear on the home page (see modules/registry.ts) but are
+// intentionally kept out of the persistent nav bar.
+const HIDDEN_FROM_NAV = new Set(["contacts"]);
 
 type NavItem = {
   key: string;
@@ -30,13 +35,15 @@ function useNavItems(): NavItem[] {
 
   return [
     { key: "home", href: "/", label: "famList home", Icon: Home, active: pathname === "/" },
-    ...modules.map((mod) => ({
-      key: mod.key,
-      href: mod.href,
-      label: mod.name,
-      Icon: moduleIcons[mod.key],
-      active: pathname === mod.href || pathname.startsWith(`${mod.href}/`),
-    })),
+    ...modules
+      .filter((mod) => !HIDDEN_FROM_NAV.has(mod.key))
+      .map((mod) => ({
+        key: mod.key,
+        href: mod.href,
+        label: mod.name,
+        Icon: moduleIcons[mod.key],
+        active: pathname === mod.href || pathname.startsWith(`${mod.href}/`),
+      })),
     // Not a data module (no entry in modules/registry.ts) — it's account
     // settings, not a family-data feature, so it's a plain nav item here
     // rather than something the registry loop picks up automatically.

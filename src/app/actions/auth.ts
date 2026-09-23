@@ -62,6 +62,15 @@ const SignupSchema = z
 
 export type SignupState = { error: string } | undefined;
 
+// Both Vercel and Neon are on free tiers — this is a blunt, cheap backstop
+// against the account table (and everything each account can create) growing
+// unbounded now that signup is public, not a real capacity model. Raise it
+// (or replace it) once there's an actual reason to expect more than a
+// couple dozen accounts. Doesn't apply to admin-created accounts (see
+// modules/admin/actions.ts createUser) — that path is already gated by
+// requiring an existing admin to act, not open to anyone with the URL.
+const MAX_USERS = 20;
+
 /** Self-service signup, open to anyone — new accounts land as plain "member"s (never "admin") with mustChangePassword unset, since they've already picked their own. */
 export async function signup(_prevState: SignupState, formData: FormData): Promise<SignupState> {
   const parsed = SignupSchema.safeParse({
@@ -74,9 +83,15 @@ export async function signup(_prevState: SignupState, formData: FormData): Promi
     return { error: parsed.error.issues[0]?.message ?? "Check the form and try again." };
   }
 
-  const existing = await db.user.findUnique({ where: { email: parsed.data.email } });
+  const [existing, userCount] = await Promise.all([
+    db.user.findUnique({ where: { email: parsed.data.email } }),
+    db.user.count(),
+  ]);
   if (existing) {
     return { error: "An account with that email already exists." };
+  }
+  if (userCount >= MAX_USERS) {
+    return { error: "famList isn't accepting new signups right now — ask an admin to add you instead." };
   }
 
   const passwordHash = await hashPassword(parsed.data.password);

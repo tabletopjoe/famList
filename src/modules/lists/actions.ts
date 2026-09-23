@@ -10,6 +10,12 @@ import { LIST_KINDS, PRESET_CATEGORIES, RESET_INTERVAL_DAYS } from "./types";
 
 export type ActionState = { error: string } | undefined;
 
+// A blunt per-account cap, same spirit as MAX_USERS in actions/auth.ts —
+// Neon's free tier has a small storage ceiling, and this is cheap insurance
+// against one account (or a script) creating unbounded lists. Well above any
+// real family's actual list count.
+const MAX_LISTS_PER_USER = 300;
+
 /** Throws if userId can't view/edit listId (not the creator, not shared with them). */
 async function requireListAccess(userId: string, listId: string) {
   if (!(await canAccessList(userId, listId))) {
@@ -30,6 +36,11 @@ export async function createList(_prevState: ActionState, formData: FormData): P
   const parsed = CreateListSchema.safeParse({ title: formData.get("title"), kind: formData.get("kind") || undefined });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Enter a valid title." };
+  }
+
+  const listCount = await db.list.count({ where: { createdById: session.userId } });
+  if (listCount >= MAX_LISTS_PER_USER) {
+    return { error: `You've hit the ${MAX_LISTS_PER_USER}-list limit per account. Delete an old list to make room.` };
   }
 
   // Lists index sorts by position ascending — one below the lowest position

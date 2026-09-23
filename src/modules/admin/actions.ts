@@ -84,3 +84,26 @@ export async function setUserRole(userId: string, role: string) {
   await db.user.update({ where: { id: userId }, data: { role } });
   revalidatePath("/admin");
 }
+
+/**
+ * Permanently removes an account — same self-lockout guard as setUserRole.
+ * List/Contact.createdBy has no onDelete set (defaults to restrict), so
+ * their owned lists and contacts have to go first; everything under a
+ * deleted list (items, categories, shares) cascades from that, and the
+ * user's own ListShare/ContactSharePair rows cascade from deleting the User
+ * row itself. Whoever had one of the deleted lists as primary just loses
+ * that pointer (List.primaryFor is onDelete: SetNull), same as ordinary
+ * list deletion.
+ */
+export async function deleteUser(userId: string) {
+  const currentUser = await requireAdmin();
+  if (userId === currentUser.id) {
+    throw new Error("You can't delete your own account.");
+  }
+  await db.$transaction([
+    db.list.deleteMany({ where: { createdById: userId } }),
+    db.contact.deleteMany({ where: { createdById: userId } }),
+    db.user.delete({ where: { id: userId } }),
+  ]);
+  revalidatePath("/admin");
+}

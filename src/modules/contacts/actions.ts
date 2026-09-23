@@ -8,6 +8,9 @@ import { canAccessContact } from "./queries";
 
 export type ActionState = { error: string } | undefined;
 
+// Same blunt per-account cap as MAX_LISTS_PER_USER in modules/lists/actions.ts.
+const MAX_CONTACTS_PER_USER = 300;
+
 const CreateContactSchema = z.object({
   firstName: z.string().trim().min(1, { error: "First name is required." }).max(80),
   lastName: z.string().trim().max(80).optional(),
@@ -47,6 +50,13 @@ export async function createContact(_prevState: ActionState, formData: FormData)
 
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Check the form and try again." };
+  }
+
+  const contactCount = await db.contact.count({ where: { createdById: session.userId } });
+  if (contactCount >= MAX_CONTACTS_PER_USER) {
+    return {
+      error: `You've hit the ${MAX_CONTACTS_PER_USER}-contact limit per account. Delete an old contact to make room.`,
+    };
   }
 
   const { email, ...rest } = parsed.data;
