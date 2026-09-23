@@ -191,6 +191,7 @@ export async function reorderCategories(listId: string, orderedIds: string[]) {
 const AddItemSchema = z.object({
   label: z.string().trim().min(1, { error: "Enter an item name." }).max(200),
   quantity: z.string().trim().max(60).optional(),
+  categoryId: z.string().optional(),
 });
 
 export async function addItem(listId: string, _prevState: ActionState, formData: FormData): Promise<ActionState> {
@@ -202,6 +203,7 @@ export async function addItem(listId: string, _prevState: ActionState, formData:
   const parsed = AddItemSchema.safeParse({
     label: formData.get("label"),
     quantity: typeof rawQuantity === "string" && rawQuantity.trim() ? rawQuantity : undefined,
+    categoryId: emptyToNull(formData.get("categoryId")) ?? undefined,
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Enter an item name." };
@@ -211,8 +213,14 @@ export async function addItem(listId: string, _prevState: ActionState, formData:
   // position only needs to order items within their own isDone group,
   // since isDone is the primary sort key (see getListWithItems).
   const position = await db.listItem.count({ where: { listId, isDone: false } });
+  // Only accept a category that belongs to this list.
+  let categoryId: string | null = null;
+  if (parsed.data.categoryId) {
+    const category = await db.category.findFirst({ where: { id: parsed.data.categoryId, listId }, select: { id: true } });
+    categoryId = category?.id ?? null;
+  }
   await db.listItem.create({
-    data: { listId, label: parsed.data.label, quantity: parsed.data.quantity, position },
+    data: { listId, label: parsed.data.label, quantity: parsed.data.quantity, position, categoryId },
   });
   revalidatePath(`/lists/${listId}`);
 }

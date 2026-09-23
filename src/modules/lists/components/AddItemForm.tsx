@@ -1,16 +1,29 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Plus } from "lucide-react";
 import { addItem, type ActionState } from "../actions";
 import type { ListKind } from "../types";
 
-export function AddItemForm({ listId, kind }: { listId: string; kind: ListKind }) {
+type Category = { id: string; name: string };
+
+export function AddItemForm({
+  listId,
+  kind,
+  categories,
+}: {
+  listId: string;
+  kind: ListKind;
+  categories: Category[];
+}) {
   const action = async (prevState: ActionState, formData: FormData) => {
     const result = await addItem(listId, prevState, formData);
     return result;
   };
   const [state, formAction, pending] = useActionState(action, undefined);
+  // Like CreateListForm's type selector: focusing the item field reveals the
+  // category picker, which then stays up rather than vanishing on blur.
+  const [active, setActive] = useState(false);
 
   return (
     <form
@@ -25,6 +38,7 @@ export function AddItemForm({ listId, kind }: { listId: string; kind: ListKind }
           name="label"
           placeholder="Add an item…"
           required
+          onFocus={() => setActive(true)}
           className="min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-3 py-2 text-sm text-field-ink placeholder:text-field-ink/40"
         />
         {kind === "shopping" && (
@@ -44,6 +58,24 @@ export function AddItemForm({ listId, kind }: { listId: string; kind: ListKind }
           <Plus className="size-4" strokeWidth={2} />
         </button>
       </div>
+      {active && categories.length > 0 && (
+        <select
+          name="categoryId"
+          defaultValue=""
+          disabled={pending}
+          aria-label="Category"
+          className="w-full rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-field-ink disabled:opacity-50"
+        >
+          <option value="" className="bg-white/80 text-field-ink">
+            No category
+          </option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id} className="bg-white/80 text-field-ink">
+              {c.name}
+            </option>
+          ))}
+        </select>
+      )}
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
     </form>
   );
