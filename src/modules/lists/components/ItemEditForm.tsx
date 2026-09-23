@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useState, useTransition, type ReactNode } from "react";
-import { ExternalLink, Plus } from "lucide-react";
-import { updateItem, createCategory, type ActionState } from "../actions";
+import { ExternalLink, Plus, Trash2 } from "lucide-react";
+import { updateItem, createCategory, deleteItem, type ActionState } from "../actions";
 import type { ListKind } from "../types";
 
 /** A bare domain (e.g. "example.com/recipe") would otherwise resolve relative to this app's own origin. */
@@ -76,6 +76,22 @@ export function ItemEditForm({
   const [newCategoryName, setNewCategoryName] = useState("");
   const [categoryError, setCategoryError] = useState<string | null>(null);
   const [categoryPending, startCategoryTransition] = useTransition();
+  // Delete sits right next to Save, so the first tap only arms it and the
+  // second actually deletes — no browser confirm() dialog needed.
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deletePending, startDeleteTransition] = useTransition();
+  const busy = pending || deletePending;
+
+  function handleDelete() {
+    if (!confirmingDelete) {
+      setConfirmingDelete(true);
+      return;
+    }
+    startDeleteTransition(async () => {
+      await deleteItem(listId, item.id);
+      onSaved();
+    });
+  }
 
   function handleAddCategory() {
     const name = newCategoryName.trim();
@@ -231,18 +247,32 @@ export function ItemEditForm({
         {addCategoryRow}
         {categoryError && <p className="text-sm text-red-400">{categoryError}</p>}
         {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
-        <div className="flex justify-end gap-2 border-t border-foreground/10 pt-3">
+        <div className="flex items-center justify-end gap-2 border-t border-foreground/10 pt-3">
+          <button
+            type="button"
+            onClick={handleDelete}
+            onBlur={() => setConfirmingDelete(false)}
+            disabled={busy}
+            className={`mr-auto flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors disabled:opacity-50 ${
+              confirmingDelete
+                ? "bg-red-600 font-medium text-white hover:bg-red-700 active:bg-red-800"
+                : "text-red-500 hover:text-red-600 active:opacity-70"
+            }`}
+          >
+            <Trash2 className="size-4" strokeWidth={1.75} />
+            {confirmingDelete ? "Confirm delete" : "Delete"}
+          </button>
           <button
             type="button"
             onClick={onCancel}
-            disabled={pending}
+            disabled={busy}
             className="rounded-md px-3 py-1.5 text-sm text-foreground/70 hover:text-foreground active:opacity-70 disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="submit"
-            disabled={pending}
+            disabled={busy}
             className="rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
           >
             Save
