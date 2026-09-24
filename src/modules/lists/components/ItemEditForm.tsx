@@ -4,11 +4,7 @@ import { useActionState, useState, useTransition, type ReactNode } from "react";
 import { ExternalLink, Plus, Trash2 } from "lucide-react";
 import { updateItem, createCategory, deleteItem, type ActionState } from "../actions";
 import type { ListKind } from "../types";
-
-/** A bare domain (e.g. "example.com/recipe") would otherwise resolve relative to this app's own origin. */
-function externalHref(url: string): string {
-  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
-}
+import { externalHref } from "../externalHref";
 
 type EditableItem = {
   id: string;
@@ -238,7 +234,8 @@ export function ItemEditForm({
         ) : (
           <>
             {nameField}
-            {quantityField}
+            {/* Only shopping lists track quantities. */}
+            {kind === "shopping" && quantityField}
             {notesField}
             {linkField}
           </>

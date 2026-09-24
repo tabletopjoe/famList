@@ -1,10 +1,11 @@
 "use client";
 
 import { forwardRef, useTransition, type PointerEventHandler } from "react";
-import { Clock, Grip, Trash2 } from "lucide-react";
+import { Clock, ExternalLink, Grip, Trash2 } from "lucide-react";
 import { toggleItem, deleteItem, setItemRecurring } from "../actions";
 import { useDeleteMode } from "./DeleteModeContext";
 import type { ListKind } from "../types";
+import { externalHref } from "../externalHref";
 
 type DragHandleProps = {
   onPointerDown: PointerEventHandler<HTMLButtonElement>;
@@ -20,6 +21,7 @@ type ItemRowProps = {
     id: string;
     label: string;
     quantity: string | null;
+    link: string | null;
     isDone: boolean;
     isRecurring: boolean;
   };
@@ -45,6 +47,11 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
   // trash icon below, not a check-then-delete flow (see LIST_KINDS in
   // types.ts).
   const showCheckbox = kind === "shopping";
+  // Recipe, notes, and collection items with a saved link get a launch icon
+  // ahead of their text — a sibling of the edit button, so tapping it opens
+  // the link rather than the edit form.
+  const trimmedLink = item.link?.trim();
+  const showLink = kind !== "shopping" && !!trimmedLink;
   const labelSpan = (
     <span className={`flex-1 ${item.isDone ? "text-foreground/40 line-through" : ""}`}>
       {item.label}
@@ -76,6 +83,18 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
             // function) for named colors, not one-off bracket values.
             className="size-4 shrink-0 accent-accent/85"
           />
+        )}
+        {showLink && (
+          <a
+            href={externalHref(trimmedLink!)}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Open link for ${item.label}`}
+            title="Open link"
+            className="shrink-0 text-foreground/50 transition-colors hover:text-foreground active:text-foreground"
+          >
+            <ExternalLink className="size-4" strokeWidth={1.75} />
+          </a>
         )}
         {/* The text space between the checkbox and the icon group opens the edit form. */}
         <button type="button" onClick={onEdit} className="flex flex-1 cursor-pointer items-center py-1 text-left">
