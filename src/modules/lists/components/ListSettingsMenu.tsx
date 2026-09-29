@@ -13,9 +13,10 @@ import {
   deleteStatus,
   reorderStatuses,
 } from "../actions";
-import { LIST_KINDS, RESET_INTERVAL_OPTIONS, listKindOptionLabel, type ListKind } from "../types";
+import { RESET_INTERVAL_OPTIONS, type ListKind } from "../types";
 import { CollapsibleSection } from "@/components/CollapsibleSection";
 import { LabelManager } from "./LabelManager";
+import { ListKindSelect } from "./ListKindSelect";
 import { ListShareManager } from "./ListShareManager";
 
 type OtherUser = { id: string; name: string };
@@ -98,18 +99,12 @@ export function ListSettingsMenu({
           <div className="mt-3 max-w-sm space-y-3">
             <label className="block text-sm text-foreground/70">
               List type
-              <select
+              <ListKindSelect
                 value={kind}
                 disabled={isPending}
                 onChange={(e) => startTransition(() => setListKind(listId, e.target.value))}
                 className={selectClass}
-              >
-                {LIST_KINDS.map((k) => (
-                  <option key={k} value={k} className="bg-white/80 text-field-ink">
-                    {listKindOptionLabel(k)}
-                  </option>
-                ))}
-              </select>
+              />
             </label>
             {kind === "shopping" && (
               <label className="block text-sm text-foreground/70">
