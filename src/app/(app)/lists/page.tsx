@@ -22,6 +22,7 @@ const KIND_FILTER_NOUN: Record<ListKind, string> = {
   collection: "collections",
   notes: "notes",
   recipe: "recipe lists",
+  project: "project lists",
 };
 
 function emptyMessage(filter: OwnershipFilter, kindFilter: ListKind | null): string {

@@ -2,9 +2,10 @@
 
 import { useActionState, useState, useTransition, type ReactNode } from "react";
 import { ExternalLink, Plus, Trash2 } from "lucide-react";
-import { updateItem, createCategory, deleteItem, type ActionState } from "../actions";
+import { updateItem, createCategory, createStatus, deleteItem, type ActionState } from "../actions";
 import type { ListKind } from "../types";
 import { externalHref } from "../externalHref";
+import { toDateInputValue } from "../dates";
 
 type EditableItem = {
   id: string;
@@ -13,9 +14,17 @@ type EditableItem = {
   notes: string | null;
   link: string | null;
   categoryId: string | null;
+  startDate: Date | null;
+  dueDate: Date | null;
+  person: string | null;
+  statusId: string | null;
+  dependsOnId: string | null;
 };
 
 type Category = { id: string; name: string };
+type Status = { id: string; name: string };
+/** The list's items, for the project "Depends on" picker. */
+type SiblingItem = { id: string; label: string; dependsOnId: string | null };
 
 const fieldClass =
   "min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-field-ink placeholder:text-field-ink/40 disabled:opacity-50";
@@ -33,18 +42,96 @@ function FieldRow({ id, label, children }: { id: string; label: string; children
 }
 
 /**
+ * "Add a category/status" row under its select: creates it right away
+ * (not deferred to Save) and hands the new id back so the select can pick
+ * it — Save still has to be pressed to persist the assignment itself.
+ */
+function AddLabelRow({
+  noun,
+  onAdd,
+}: {
+  noun: string;
+  onAdd: (name: string) => Promise<{ error: string } | { id: string }>;
+}) {
+  const [name, setName] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function handleAdd() {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    startTransition(async () => {
+      const result = await onAdd(trimmed);
+      if ("error" in result) {
+        setError(result.error);
+      } else {
+        setError(null);
+        setName("");
+      }
+    });
+  }
+
+  return (
+    <>
+      <div className="flex items-center gap-2">
+        <span className="w-20 shrink-0" aria-hidden />
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleAdd();
+            }
+          }}
+          placeholder={`New ${noun}`}
+          disabled={pending}
+          className={fieldClass}
+        />
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={pending}
+          aria-label={`Add ${noun}`}
+          title={`Add ${noun}`}
+          className="flex size-8 shrink-0 items-center justify-center rounded-md bg-foreground text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
+        >
+          <Plus className="size-4" strokeWidth={2} />
+        </button>
+      </div>
+      {error && <p className="text-sm text-red-400">{error}</p>}
+    </>
+  );
+}
+
+/** Items this one could depend on: anything else in the list whose own dependency chain doesn't already lead back here (that would be a loop — updateItem refuses it too). */
+function dependencyCandidates(itemId: string, items: SiblingItem[]): SiblingItem[] {
+  const byId = new Map(items.map((i) => [i.id, i]));
+  return items.filter((candidate) => {
+    const seen = new Set<string>();
+    for (let id: string | null = candidate.id; id && !seen.has(id); id = byId.get(id)?.dependsOnId ?? null) {
+      if (id === itemId) return false;
+      seen.add(id);
+    }
+    return true;
+  });
+}
+
+/**
  * Translucent panel for editing one item's fields — styled to match
  * ListSettingsMenu's panel, but sits in normal flow beneath the single
  * filtered-down row ItemList renders while editing, rather than floating
  * over it. Field set and order depend on the list's kind: recipe and notes
- * lists have no use for Quantity, and each favors a different field order
- * (see the caller's request for the specifics).
+ * lists have no use for Quantity, project lists add status/person/dates/
+ * dependency, and each favors a different field order.
  */
 export function ItemEditForm({
   listId,
   kind,
   item,
   categories,
+  statuses,
+  items,
   onCancel,
   onSaved,
 }: {
@@ -52,6 +139,8 @@ export function ItemEditForm({
   kind: ListKind;
   item: EditableItem;
   categories: Category[];
+  statuses: Status[];
+  items: SiblingItem[];
   onCancel: () => void;
   onSaved: () => void;
 }) {
@@ -69,9 +158,8 @@ export function ItemEditForm({
   // Also controlled (unlike Name/Quantity/Notes) so the launch icon beside
   // it reflects whatever's currently typed, not just the last-saved link.
   const [link, setLink] = useState(item.link ?? "");
-  const [newCategoryName, setNewCategoryName] = useState("");
-  const [categoryError, setCategoryError] = useState<string | null>(null);
-  const [categoryPending, startCategoryTransition] = useTransition();
+  // Controlled for the same reason as categoryId.
+  const [statusId, setStatusId] = useState(item.statusId ?? "");
   // Delete sits right next to Save, so the first tap only arms it and the
   // second actually deletes — no browser confirm() dialog needed.
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -89,19 +177,18 @@ export function ItemEditForm({
     });
   }
 
-  function handleAddCategory() {
-    const name = newCategoryName.trim();
-    if (!name) return;
-    startCategoryTransition(async () => {
-      const result = await createCategory(listId, name);
-      if ("error" in result) {
-        setCategoryError(result.error);
-      } else {
-        setCategoryError(null);
-        setCategoryId(result.category.id);
-        setNewCategoryName("");
-      }
-    });
+  async function addCategory(name: string) {
+    const result = await createCategory(listId, name);
+    if ("error" in result) return result;
+    setCategoryId(result.category.id);
+    return { id: result.category.id };
+  }
+
+  async function addStatus(name: string) {
+    const result = await createStatus(listId, name);
+    if ("error" in result) return result;
+    setStatusId(result.status.id);
+    return { id: result.status.id };
   }
 
   const categoryField = (
@@ -125,33 +212,78 @@ export function ItemEditForm({
       </select>
     </FieldRow>
   );
-  const addCategoryRow = (
-    <div className="flex items-center gap-2">
-      <span className="w-20 shrink-0" aria-hidden />
+  const addCategoryRow = <AddLabelRow noun="category" onAdd={addCategory} />;
+
+  const statusField = (
+    <FieldRow id="item-edit-status" label="Status">
+      <select
+        id="item-edit-status"
+        name="statusId"
+        value={statusId}
+        onChange={(e) => setStatusId(e.target.value)}
+        disabled={pending}
+        className={fieldClass}
+      >
+        <option value="" className="bg-white/80 text-field-ink">
+          None
+        </option>
+        {statuses.map((st) => (
+          <option key={st.id} value={st.id} className="bg-white/80 text-field-ink">
+            {st.name}
+          </option>
+        ))}
+      </select>
+    </FieldRow>
+  );
+  const addStatusRow = <AddLabelRow noun="status" onAdd={addStatus} />;
+  const personField = (
+    <FieldRow id="item-edit-person" label="Person">
+      <input id="item-edit-person" name="person" defaultValue={item.person ?? ""} disabled={pending} className={fieldClass} />
+    </FieldRow>
+  );
+  const startDateField = (
+    <FieldRow id="item-edit-start" label="Start date">
       <input
-        value={newCategoryName}
-        onChange={(e) => setNewCategoryName(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            handleAddCategory();
-          }
-        }}
-        placeholder="New category"
-        disabled={categoryPending}
+        id="item-edit-start"
+        name="startDate"
+        type="date"
+        defaultValue={toDateInputValue(item.startDate)}
+        disabled={pending}
         className={fieldClass}
       />
-      <button
-        type="button"
-        onClick={handleAddCategory}
-        disabled={categoryPending}
-        aria-label="Add category"
-        title="Add category"
-        className="flex size-8 shrink-0 items-center justify-center rounded-md bg-foreground text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
+    </FieldRow>
+  );
+  const dueDateField = (
+    <FieldRow id="item-edit-due" label="Due date">
+      <input
+        id="item-edit-due"
+        name="dueDate"
+        type="date"
+        defaultValue={toDateInputValue(item.dueDate)}
+        disabled={pending}
+        className={fieldClass}
+      />
+    </FieldRow>
+  );
+  const dependsOnField = (
+    <FieldRow id="item-edit-depends" label="Depends on">
+      <select
+        id="item-edit-depends"
+        name="dependsOnId"
+        defaultValue={item.dependsOnId ?? ""}
+        disabled={pending}
+        className={fieldClass}
       >
-        <Plus className="size-4" strokeWidth={2} />
-      </button>
-    </div>
+        <option value="" className="bg-white/80 text-field-ink">
+          Nothing
+        </option>
+        {dependencyCandidates(item.id, items).map((candidate) => (
+          <option key={candidate.id} value={candidate.id} className="bg-white/80 text-field-ink">
+            {candidate.label}
+          </option>
+        ))}
+      </select>
+    </FieldRow>
   );
 
   const nameField = (
@@ -231,6 +363,18 @@ export function ItemEditForm({
             {notesField}
             {linkField}
           </>
+        ) : kind === "project" ? (
+          <>
+            {nameField}
+            {statusField}
+            {addStatusRow}
+            {personField}
+            {startDateField}
+            {dueDateField}
+            {dependsOnField}
+            {notesField}
+            {linkField}
+          </>
         ) : (
           <>
             {nameField}
@@ -242,7 +386,6 @@ export function ItemEditForm({
         )}
         {categoryField}
         {addCategoryRow}
-        {categoryError && <p className="text-sm text-red-400">{categoryError}</p>}
         {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
         <div className="flex items-center justify-end gap-2 border-t border-foreground/10 pt-3">
           <button

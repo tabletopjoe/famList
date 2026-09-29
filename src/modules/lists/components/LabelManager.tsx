@@ -2,24 +2,39 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { Grip, Plus, Trash2 } from "lucide-react";
-import { createCategory, deleteCategory, reorderCategories } from "../actions";
 import { useDragReorder } from "@/hooks/useDragReorder";
 
-type Category = { id: string; name: string };
+type Label = { id: string; name: string };
 
 /**
- * Add/delete/reorder for one list's categories — lives inside
- * ListSettingsMenu's "Categories" CollapsibleSection. Same press-and-drag
- * pattern as ItemList/ListCardList (see useDragReorder), just without a
- * group boundary (any category can trade places with any other).
+ * Add/delete/reorder for one list's named labels — its categories, or a
+ * project list's statuses — inside one of ListSettingsMenu's
+ * CollapsibleSections. Same press-and-drag pattern as
+ * ItemList/ListCardList (see useDragReorder), just without a group
+ * boundary (any entry can trade places with any other).
  */
-export function CategoryManager({ listId, categories }: { listId: string; categories: Category[] }) {
-  const categoriesById = new Map(categories.map((c) => [c.id, c]));
-  const categoryIds = useMemo(() => categories.map((c) => c.id), [categories]);
+export function LabelManager({
+  listId,
+  labels,
+  noun,
+  onCreate,
+  onDelete,
+  onReorder,
+}: {
+  listId: string;
+  labels: Label[];
+  /** Lowercase singular, e.g. "category" — used in placeholders and aria labels. */
+  noun: string;
+  onCreate: (listId: string, name: string) => Promise<{ error: string } | object>;
+  onDelete: (listId: string, id: string) => Promise<void>;
+  onReorder: (listId: string, orderedIds: string[]) => Promise<void>;
+}) {
+  const labelsById = new Map(labels.map((c) => [c.id, c]));
+  const labelIds = useMemo(() => labels.map((c) => c.id), [labels]);
 
   const { order, draggingId, dragOffset, registerRow, dragHandlePropsFor } = useDragReorder<string, HTMLDivElement>(
-    categoryIds,
-    (order) => reorderCategories(listId, order),
+    labelIds,
+    (order) => onReorder(listId, order),
   );
 
   const [, startDeleteTransition] = useTransition();
@@ -31,7 +46,7 @@ export function CategoryManager({ listId, categories }: { listId: string; catego
     const name = newName.trim();
     if (!name) return;
     startAddTransition(async () => {
-      const result = await createCategory(listId, name);
+      const result = await onCreate(listId, name);
       if ("error" in result) {
         setError(result.error);
       } else {
@@ -44,12 +59,12 @@ export function CategoryManager({ listId, categories }: { listId: string; catego
   return (
     <div className="space-y-3">
       {order.length === 0 ? (
-        <p className="text-sm text-foreground/50">No categories yet.</p>
+        <p className="text-sm text-foreground/50">None yet.</p>
       ) : (
         <div className="space-y-1">
           {order.map((id) => {
-            const category = categoriesById.get(id);
-            if (!category) return null;
+            const label = labelsById.get(id);
+            if (!label) return null;
             const isDragging = draggingId === id;
             return (
               <div
@@ -60,19 +75,19 @@ export function CategoryManager({ listId, categories }: { listId: string; catego
                 }
                 className={`flex items-center gap-2 rounded-md px-2 py-1.5 ${isDragging ? "bg-foreground/10" : ""}`}
               >
-                <span className="flex-1 truncate text-sm text-foreground">{category.name}</span>
+                <span className="flex-1 truncate text-sm text-foreground">{label.name}</span>
                 <button
                   type="button"
-                  onClick={() => startDeleteTransition(() => deleteCategory(listId, id))}
-                  aria-label={`Delete category ${category.name}`}
-                  title="Delete category"
+                  onClick={() => startDeleteTransition(() => onDelete(listId, id))}
+                  aria-label={`Delete ${noun} ${label.name}`}
+                  title={`Delete ${noun}`}
                   className="text-foreground/40 hover:text-red-400 active:text-red-500"
                 >
                   <Trash2 className="size-4" strokeWidth={1.75} />
                 </button>
                 <button
                   type="button"
-                  aria-label={`Reorder ${category.name}`}
+                  aria-label={`Reorder ${label.name}`}
                   title="Drag to reorder"
                   className="touch-none cursor-grab select-none px-1 text-foreground/40 hover:text-foreground/70 active:cursor-grabbing active:text-foreground"
                   {...dragHandlePropsFor(id)}
@@ -94,7 +109,7 @@ export function CategoryManager({ listId, categories }: { listId: string; catego
               handleAdd();
             }
           }}
-          placeholder="New category"
+          placeholder={`New ${noun}`}
           disabled={addPending}
           className="min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-field-ink placeholder:text-field-ink/40 disabled:opacity-50"
         />
@@ -102,8 +117,8 @@ export function CategoryManager({ listId, categories }: { listId: string; catego
           type="button"
           onClick={handleAdd}
           disabled={addPending}
-          aria-label="Add category"
-          title="Add category"
+          aria-label={`Add ${noun}`}
+          title={`Add ${noun}`}
           className="flex size-8 shrink-0 items-center justify-center rounded-md bg-foreground text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
         >
           <Plus className="size-4" strokeWidth={2} />

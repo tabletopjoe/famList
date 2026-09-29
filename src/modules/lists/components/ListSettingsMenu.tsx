@@ -2,10 +2,20 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { Settings, Trash2 } from "lucide-react";
-import { setListKind, setListResetInterval, deleteList } from "../actions";
-import { LIST_KINDS, LIST_KIND_LABELS, RESET_INTERVAL_OPTIONS, type ListKind } from "../types";
+import {
+  setListKind,
+  setListResetInterval,
+  deleteList,
+  createCategory,
+  deleteCategory,
+  reorderCategories,
+  createStatus,
+  deleteStatus,
+  reorderStatuses,
+} from "../actions";
+import { LIST_KINDS, RESET_INTERVAL_OPTIONS, listKindOptionLabel, type ListKind } from "../types";
 import { CollapsibleSection } from "@/components/CollapsibleSection";
-import { CategoryManager } from "./CategoryManager";
+import { LabelManager } from "./LabelManager";
 import { ListShareManager } from "./ListShareManager";
 
 type OtherUser = { id: string; name: string };
@@ -26,6 +36,7 @@ export function ListSettingsMenu({
   resetIntervalDays,
   totalCount,
   categories,
+  statuses,
   isOwner,
   otherUsers,
   sharedWithIds,
@@ -36,6 +47,7 @@ export function ListSettingsMenu({
   resetIntervalDays: number | null;
   totalCount: number;
   categories: { id: string; name: string }[];
+  statuses: { id: string; name: string }[];
   /** Only the owner manages a list's sharing — see setListShare. */
   isOwner: boolean;
   otherUsers: OtherUser[];
@@ -94,7 +106,7 @@ export function ListSettingsMenu({
               >
                 {LIST_KINDS.map((k) => (
                   <option key={k} value={k} className="bg-white/80 text-field-ink">
-                    {LIST_KIND_LABELS[k]}
+                    {listKindOptionLabel(k)}
                   </option>
                 ))}
               </select>
@@ -124,9 +136,30 @@ export function ListSettingsMenu({
             )}
             <div className="border-t border-foreground/10 pt-3">
               <CollapsibleSection title="Categories">
-                <CategoryManager listId={listId} categories={categories} />
+                <LabelManager
+                  listId={listId}
+                  labels={categories}
+                  noun="category"
+                  onCreate={createCategory}
+                  onDelete={deleteCategory}
+                  onReorder={reorderCategories}
+                />
               </CollapsibleSection>
             </div>
+            {kind === "project" && (
+              <div className="border-t border-foreground/10 pt-3">
+                <CollapsibleSection title="Statuses">
+                  <LabelManager
+                    listId={listId}
+                    labels={statuses}
+                    noun="status"
+                    onCreate={createStatus}
+                    onDelete={deleteStatus}
+                    onReorder={reorderStatuses}
+                  />
+                </CollapsibleSection>
+              </div>
+            )}
             {isOwner && (
               <div className="border-t border-foreground/10 pt-3">
                 <CollapsibleSection title="Share with">

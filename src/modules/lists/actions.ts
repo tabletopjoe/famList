@@ -6,7 +6,15 @@ import * as z from "zod";
 import { db } from "@/lib/db";
 import { verifySession } from "@/lib/auth/dal";
 import { canAccessList, visibleToUser } from "./queries";
-import { LIST_KINDS, PRESET_CATEGORIES, RESET_INTERVAL_DAYS, type ListKind } from "./types";
+import {
+  COMPLETED_STATUS,
+  LIST_KINDS,
+  PRESET_CATEGORIES,
+  PRESET_STATUSES,
+  REOPENED_STATUS,
+  RESET_INTERVAL_DAYS,
+  type ListKind,
+} from "./types";
 
 export type ActionState = { error: string } | undefined;
 
@@ -52,7 +60,7 @@ export async function createList(_prevState: ActionState, formData: FormData): P
     data: { title: parsed.data.title, createdById: session.userId, kind: parsed.data.kind, position },
   });
 
-  await ensurePresetCategories(list.id, parsed.data.kind);
+  await ensurePresets(list.id, parsed.data.kind);
 
   revalidatePath("/lists");
   redirect(`/lists/${list.id}`);
@@ -128,35 +136,40 @@ export async function setListKind(listId: string, rawKind: string) {
       resetIntervalDays: parsed.data === "shopping" ? undefined : null,
     },
   });
-  await ensurePresetCategories(listId, parsed.data);
+  await ensurePresets(listId, parsed.data);
   revalidatePath(`/lists/${listId}`);
 }
 
 /**
- * Tops a list up to its kind's preset categories (PRESET_CATEGORIES) —
- * adds whichever presets are missing, appended after the existing ones,
- * and never removes or reorders anything. So switching kinds keeps every
- * category the list already has (user-added or left over from a previous
- * kind) and just fills in the new kind's defaults. Name match is
- * case-insensitive so a user's "produce" isn't doubled by a preset
- * "Produce".
+ * Tops a list up to its kind's preset categories (PRESET_CATEGORIES) and
+ * statuses (PRESET_STATUSES) — adds whichever presets are missing,
+ * appended after the existing ones, and never removes or reorders
+ * anything. So switching kinds keeps everything the list already has
+ * (user-added or left over from a previous kind) and just fills in the new
+ * kind's defaults. Name match is case-insensitive so a user's "produce"
+ * isn't doubled by a preset "Produce".
  */
-async function ensurePresetCategories(listId: string, kind: ListKind) {
-  const presets = PRESET_CATEGORIES[kind];
-  if (!presets) return;
+async function ensurePresets(listId: string, kind: ListKind) {
+  const [categories, statuses] = await Promise.all([
+    db.category.findMany({ where: { listId }, select: { name: true, position: true } }),
+    db.status.findMany({ where: { listId }, select: { name: true, position: true } }),
+  ]);
+  const newCategories = missingPresets(listId, categories, PRESET_CATEGORIES[kind]);
+  const newStatuses = missingPresets(listId, statuses, PRESET_STATUSES[kind]);
+  // skipDuplicates: a concurrent call (e.g. a double-submitted kind change)
+  // may have just added the same preset — the [listId, name] unique makes
+  // that a no-op.
+  if (newCategories.length > 0) await db.category.createMany({ data: newCategories, skipDuplicates: true });
+  if (newStatuses.length > 0) await db.status.createMany({ data: newStatuses, skipDuplicates: true });
+}
 
-  const existing = await db.category.findMany({ where: { listId }, select: { name: true, position: true } });
-  const have = new Set(existing.map((c) => c.name.toLowerCase()));
-  const missing = presets.filter((name) => !have.has(name.toLowerCase()));
-  if (missing.length === 0) return;
-
-  const start = existing.reduce((max, c) => Math.max(max, c.position + 1), 0);
-  await db.category.createMany({
-    data: missing.map((name, i) => ({ listId, name, position: start + i })),
-    // A concurrent call (e.g. a double-submitted kind change) may have just
-    // added the same preset — the [listId, name] unique makes that a no-op.
-    skipDuplicates: true,
-  });
+function missingPresets(listId: string, existing: { name: string; position: number }[], presets: string[] | undefined) {
+  if (!presets) return [];
+  const have = new Set(existing.map((e) => e.name.toLowerCase()));
+  const start = existing.reduce((max, e) => Math.max(max, e.position + 1), 0);
+  return presets
+    .filter((name) => !have.has(name.toLowerCase()))
+    .map((name, i) => ({ listId, name, position: start + i }));
 }
 
 export async function setListResetInterval(listId: string, days: number | null) {
@@ -211,6 +224,53 @@ export async function reorderCategories(listId: string, orderedIds: string[]) {
   revalidatePath(`/lists/${listId}`);
 }
 
+export type CreateStatusResult = { error: string } | { status: { id: string; name: string } };
+
+/** Project-list statuses — same add/delete/reorder shape as categories above (see Status in schema.prisma). */
+export async function createStatus(listId: string, rawName: string): Promise<CreateStatusResult> {
+  const session = await verifySession();
+  await requireListAccess(session.userId, listId);
+  const name = rawName.trim();
+  if (!name) return { error: "Enter a status name." };
+  if (name.length > 60) return { error: "Status name is too long." };
+
+  const count = await db.status.count({ where: { listId } });
+  try {
+    const status = await db.status.create({ data: { listId, name, position: count } });
+    revalidatePath(`/lists/${listId}`);
+    return { status: { id: status.id, name: status.name } };
+  } catch {
+    return { error: `"${name}" already exists.` };
+  }
+}
+
+/** Items with the deleted status fall back to none (onDelete: SetNull). */
+export async function deleteStatus(listId: string, statusId: string) {
+  const session = await verifySession();
+  await requireListAccess(session.userId, listId);
+  await db.status.deleteMany({ where: { id: statusId, listId } });
+  revalidatePath(`/lists/${listId}`);
+}
+
+export async function reorderStatuses(listId: string, orderedIds: string[]) {
+  const session = await verifySession();
+  await requireListAccess(session.userId, listId);
+  const statuses = await db.status.findMany({ where: { listId }, select: { id: true } });
+  if (orderedIds.length !== statuses.length || !statuses.every((st) => orderedIds.includes(st.id))) return;
+
+  await db.$transaction(orderedIds.map((id, position) => db.status.update({ where: { id }, data: { position } })));
+  revalidatePath(`/lists/${listId}`);
+}
+
+/** This list's status with the given name (case-insensitive), if it still has one — see COMPLETED_STATUS. */
+async function findStatusId(listId: string, name: string): Promise<string | null> {
+  const status = await db.status.findFirst({
+    where: { listId, name: { equals: name, mode: "insensitive" } },
+    select: { id: true },
+  });
+  return status?.id ?? null;
+}
+
 const AddItemSchema = z.object({
   label: z.string().trim().min(1, { error: "Enter an item name." }).max(200),
   quantity: z.string().trim().max(60).optional(),
@@ -256,6 +316,26 @@ const UpdateItemSchema = z.object({
   categoryId: z.string().nullable(),
 });
 
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { error: "Enter a valid date." });
+
+const ProjectFieldsSchema = z
+  .object({
+    startDate: isoDate.nullable(),
+    dueDate: isoDate.nullable(),
+    person: z.string().trim().max(120).nullable(),
+    statusId: z.string().nullable(),
+    dependsOnId: z.string().nullable(),
+  })
+  // Same-format ISO date strings compare correctly as plain strings.
+  .refine((f) => !f.startDate || !f.dueDate || f.dueDate >= f.startDate, {
+    error: "Due date can't be before the start date.",
+  });
+
+/** A calendar day from an <input type="date"> — stored as UTC midnight (see ListItem.startDate in schema.prisma). */
+function toDateOnly(value: string | null): Date | null {
+  return value ? new Date(`${value}T00:00:00Z`) : null;
+}
+
 /** "" (an emptied field) becomes null here rather than being left out of the update, so clearing a field in the edit form actually clears it. */
 function emptyToNull(value: FormDataEntryValue | null): string | null {
   return typeof value === "string" && value.trim() ? value : null;
@@ -291,29 +371,141 @@ export async function updateItem(
     categoryId = category?.id ?? null;
   }
 
+  // Project fields are only on the form for project lists — anywhere else
+  // they're left untouched rather than cleared, so they survive a kind
+  // change back and forth (same as isRecurring).
+  const list = await db.list.findUnique({ where: { id: listId }, select: { kind: true } });
+  let projectData: ProjectItemData = {};
+  if (list?.kind === "project") {
+    const result = await parseProjectFields(listId, itemId, formData);
+    if ("error" in result) return result;
+    projectData = result.data;
+  }
+
   await db.listItem.updateMany({
     where: { id: itemId, listId },
-    data: { ...parsed.data, categoryId },
+    data: { ...parsed.data, categoryId, ...projectData },
   });
   revalidatePath(`/lists/${listId}`);
+}
+
+type ProjectItemData = {
+  startDate?: Date | null;
+  dueDate?: Date | null;
+  person?: string | null;
+  statusId?: string | null;
+  dependsOnId?: string | null;
+  isDone?: boolean;
+  completedAt?: Date | null;
+};
+
+/**
+ * Validates a project item's extra fields and works out the checkbox side
+ * effect of its status: switching to "Completed" checks it off (refused
+ * while it's still waiting on its precursor), switching away from it
+ * un-checks it. Any other status change leaves the checkbox alone.
+ */
+async function parseProjectFields(
+  listId: string,
+  itemId: string,
+  formData: FormData,
+): Promise<{ error: string } | { data: ProjectItemData }> {
+  const parsed = ProjectFieldsSchema.safeParse({
+    startDate: emptyToNull(formData.get("startDate")),
+    dueDate: emptyToNull(formData.get("dueDate")),
+    person: emptyToNull(formData.get("person")),
+    statusId: emptyToNull(formData.get("statusId")),
+    dependsOnId: emptyToNull(formData.get("dependsOnId")),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Enter valid project details." };
+  }
+  const fields = parsed.data;
+
+  const [statuses, items] = await Promise.all([
+    db.status.findMany({ where: { listId }, select: { id: true, name: true } }),
+    db.listItem.findMany({
+      where: { listId },
+      select: { id: true, label: true, isDone: true, statusId: true, dependsOnId: true },
+    }),
+  ]);
+  const itemsById = new Map(items.map((i) => [i.id, i]));
+  const item = itemsById.get(itemId);
+  if (!item) return { error: "That item no longer exists." };
+
+  // Same re-check as categoryId: ids from another list (or deleted since
+  // the form opened) fall back to none.
+  const statusId = fields.statusId && statuses.some((st) => st.id === fields.statusId) ? fields.statusId : null;
+  const dependsOnId = fields.dependsOnId && itemsById.has(fields.dependsOnId) ? fields.dependsOnId : null;
+  if (dependsOnId) {
+    // Walk the precursor's own chain: reaching this item means the new link
+    // would close a loop, locking every item in it for good.
+    const seen = new Set<string>();
+    for (let id: string | null = dependsOnId; id && !seen.has(id); id = itemsById.get(id)?.dependsOnId ?? null) {
+      if (id === itemId) return { error: "That would make these items wait on each other." };
+      seen.add(id);
+    }
+  }
+
+  const data: ProjectItemData = {
+    startDate: toDateOnly(fields.startDate),
+    dueDate: toDateOnly(fields.dueDate),
+    person: fields.person,
+    statusId,
+    dependsOnId,
+  };
+  const completedId = statuses.find((st) => st.name.toLowerCase() === COMPLETED_STATUS.toLowerCase())?.id;
+  if (completedId && statusId !== item.statusId) {
+    if (statusId === completedId && !item.isDone) {
+      const precursor = dependsOnId ? itemsById.get(dependsOnId) : undefined;
+      if (precursor && !precursor.isDone) {
+        return { error: `Waiting on "${precursor.label}" — finish that first.` };
+      }
+      data.isDone = true;
+      data.completedAt = new Date();
+    } else if (item.statusId === completedId && item.isDone) {
+      data.isDone = false;
+      data.completedAt = null;
+    }
+  }
+  return { data };
 }
 
 export async function toggleItem(listId: string, itemId: string, isDone: boolean) {
   const session = await verifySession();
   await requireListAccess(session.userId, listId);
-  // updateMany (rather than update by id alone) so a mismatched listId/itemId
-  // pair silently matches nothing instead of quietly touching a row in a
-  // list other than the one access was just checked against.
-  //
-  // completedAt tracks when isDone last flipped true, cleared when it flips
-  // back — that's the clock resetStaleShoppingItems (queries.ts) reads
-  // against the list's resetIntervalDays to auto-uncheck it later. Setting
-  // it here regardless of list kind is harmless: collection/notes lists
-  // just never read it back.
-  await db.listItem.updateMany({
+  // findFirst on (id, listId) rather than by id alone so a mismatched
+  // listId/itemId pair matches nothing instead of quietly touching a row in
+  // a list other than the one access was just checked against.
+  const item = await db.listItem.findFirst({
     where: { id: itemId, listId },
-    data: { isDone, completedAt: isDone ? new Date() : null },
+    select: { statusId: true, list: { select: { kind: true } }, dependsOn: { select: { isDone: true } } },
   });
+  if (!item) return;
+
+  const data: { isDone: boolean; completedAt: Date | null; statusId?: string | null } = {
+    // completedAt tracks when isDone last flipped true, cleared when it
+    // flips back — that's the clock resetStaleShoppingItems (queries.ts)
+    // reads against the list's resetIntervalDays to auto-uncheck it later.
+    // Setting it regardless of list kind is harmless: other kinds just
+    // never read it back.
+    isDone,
+    completedAt: isDone ? new Date() : null,
+  };
+
+  if (item.list.kind === "project") {
+    // Locked until its precursor is done — ItemRow disables the checkbox
+    // too; this is the server-side backstop.
+    if (isDone && item.dependsOn && !item.dependsOn.isDone) return;
+    // Keep the status in step with the checkbox (see COMPLETED_STATUS).
+    const completedId = await findStatusId(listId, COMPLETED_STATUS);
+    if (completedId) {
+      if (isDone) data.statusId = completedId;
+      else if (item.statusId === completedId) data.statusId = await findStatusId(listId, REOPENED_STATUS);
+    }
+  }
+
+  await db.listItem.update({ where: { id: itemId }, data });
   revalidatePath(`/lists/${listId}`);
 }
 
@@ -325,13 +517,32 @@ export async function setItemRecurring(listId: string, itemId: string, isRecurri
   revalidatePath(`/lists/${listId}`);
 }
 
+/**
+ * Checking everything off can't strand a locked item (its precursor gets
+ * checked off in the same sweep), so there's no dependency check here.
+ * Project lists also move statuses along with the checkboxes, same as
+ * toggleItem.
+ */
 export async function setAllItemsDone(listId: string, isDone: boolean) {
   const session = await verifySession();
   await requireListAccess(session.userId, listId);
-  await db.listItem.updateMany({
-    where: { listId },
-    data: { isDone, completedAt: isDone ? new Date() : null },
-  });
+  const list = await db.list.findUnique({ where: { id: listId }, select: { kind: true } });
+  const completedId = list?.kind === "project" ? await findStatusId(listId, COMPLETED_STATUS) : null;
+  const reopenedId = completedId && !isDone ? await findStatusId(listId, REOPENED_STATUS) : null;
+
+  await db.$transaction([
+    db.listItem.updateMany({
+      where: { listId },
+      data: { isDone, completedAt: isDone ? new Date() : null },
+    }),
+    ...(completedId
+      ? [
+          isDone
+            ? db.listItem.updateMany({ where: { listId }, data: { statusId: completedId } })
+            : db.listItem.updateMany({ where: { listId, statusId: completedId }, data: { statusId: reopenedId } }),
+        ]
+      : []),
+  ]);
   revalidatePath(`/lists/${listId}`);
 }
 

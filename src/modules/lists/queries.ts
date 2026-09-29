@@ -82,6 +82,7 @@ async function resetStaleShoppingItems(listId: string, resetIntervalDays: number
 const listWithItemsInclude = {
   items: { orderBy: itemsOrderBy },
   categories: { orderBy: { position: "asc" as const } },
+  statuses: { orderBy: { position: "asc" as const } },
   // Only ever surfaced to the owner (ListSettingsMenu's "Share with"
   // section) — harmless to fetch regardless of viewer, same as categories.
   shares: { select: { userId: true } },

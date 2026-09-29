@@ -8,7 +8,7 @@ import { useItemEdit } from "./ItemEditContext";
 import { useItemSort } from "./ItemSortContext";
 import { ListSettingsMenu } from "./ListSettingsMenu";
 import { chipClass } from "@/components/chipClass";
-import type { ListKind } from "../types";
+import { isChecklistKind, type ListKind } from "../types";
 
 type OtherUser = { id: string; name: string };
 
@@ -30,6 +30,7 @@ export function ListControls({
   doneCount,
   totalCount,
   categories,
+  statuses,
   isOwner,
   otherUsers,
   sharedWithIds,
@@ -41,6 +42,7 @@ export function ListControls({
   doneCount: number;
   totalCount: number;
   categories: { id: string; name: string }[];
+  statuses: { id: string; name: string }[];
   isOwner: boolean;
   otherUsers: OtherUser[];
   sharedWithIds: string[];
@@ -122,8 +124,8 @@ export function ListControls({
       >
         <Trash2 className="size-4" strokeWidth={1.75} />
       </button>
-      {/* Only shopping lists show checkboxes day-to-day, so this is the only kind where check/uncheck-all does anything visible. */}
-      {kind === "shopping" && (
+      {/* Only checklist kinds (shopping, project) show checkboxes, so they're the only ones where check/uncheck-all does anything visible. */}
+      {isChecklistKind(kind) && (
         <button
           type="button"
           onClick={() => startTransition(() => setAllItemsDone(listId, target))}
@@ -143,6 +145,7 @@ export function ListControls({
         resetIntervalDays={resetIntervalDays}
         totalCount={totalCount}
         categories={categories}
+        statuses={statuses}
         isOwner={isOwner}
         otherUsers={otherUsers}
         sharedWithIds={sharedWithIds}

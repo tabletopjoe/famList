@@ -19,26 +19,35 @@ type Item = {
   isDone: boolean;
   isRecurring: boolean;
   categoryId: string | null;
+  startDate: Date | null;
+  dueDate: Date | null;
+  person: string | null;
+  statusId: string | null;
+  dependsOnId: string | null;
 };
 
 type Category = { id: string; name: string };
+type Status = { id: string; name: string };
 
 export function ItemList({
   listId,
   items,
   kind,
   categories,
+  statuses,
 }: {
   listId: string;
   items: Item[];
   kind: ListKind;
   categories: Category[];
+  statuses: Status[];
 }) {
   const { editingId, setEditingId } = useItemEdit();
   const { itemSort, categoryDir } = useItemSort();
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   const itemsById = new Map(items.map((i) => [i.id, i]));
+  const statusesById = new Map(statuses.map((st) => [st.id, st]));
   // Only re-derived (and thus only re-synced into the hook's order state)
   // when `items` itself changes reference — see useDragReorder's own note
   // on why that matters for not clobbering an in-progress drag.
@@ -62,6 +71,19 @@ export function ItemList({
   function renderRow(id: string) {
     const item = itemsById.get(id);
     if (!item) return null;
+    // Project lists only: the precursor this item is still waiting on (if
+    // it isn't done yet), which locks the row — see ListItem.dependsOn.
+    const precursor = item.dependsOnId ? itemsById.get(item.dependsOnId) : undefined;
+    const project =
+      kind === "project"
+        ? {
+            statusName: item.statusId ? (statusesById.get(item.statusId)?.name ?? null) : null,
+            person: item.person,
+            startDate: item.startDate,
+            dueDate: item.dueDate,
+            waitingOn: precursor && !precursor.isDone ? precursor.label : null,
+          }
+        : undefined;
     return (
       <ItemRow
         key={id}
@@ -69,6 +91,7 @@ export function ItemList({
         listId={listId}
         item={item}
         kind={kind}
+        project={project}
         onEdit={() => setEditingId(id)}
         isDragging={draggingId === id}
         dragOffset={draggingId === id ? dragOffset : 0}
@@ -151,6 +174,8 @@ export function ItemList({
               kind={kind}
               item={item}
               categories={categories}
+              statuses={statuses}
+              items={items}
               onCancel={() => setEditingId(null)}
               onSaved={() => setEditingId(null)}
             />

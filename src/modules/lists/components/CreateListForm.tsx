@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { createList } from "../actions";
-import { LIST_KINDS, LIST_KIND_LABELS } from "../types";
+import { LIST_KINDS, listKindOptionLabel } from "../types";
 
 export function CreateListForm() {
   const [state, formAction, pending] = useActionState(createList, undefined);
@@ -38,7 +38,7 @@ export function CreateListForm() {
         >
           {LIST_KINDS.map((k) => (
             <option key={k} value={k} className="bg-white/80 text-field-ink">
-              {LIST_KIND_LABELS[k]}
+              {listKindOptionLabel(k)}
             </option>
           ))}
         </select>

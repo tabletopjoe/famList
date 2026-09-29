@@ -44,7 +44,8 @@ model User {
 model List {
   id                String   @id @default(cuid())
   title             String
-  // "shopping" | "collection" | "notes" — see src/modules/lists/types.ts.
+  // "shopping" | "collection" | "notes" | "recipe" | "project" — see
+  // src/modules/lists/types.ts.
   // Plain string + Zod validation (same pattern as User.role), not a
   // Postgres enum: adding a fourth type later is then just a code change,
   // no migration.
@@ -71,6 +72,7 @@ model List {
   items      ListItem[]
   shares     ListShare[]
   categories Category[]
+  statuses   Status[]
 }
 
 // Per-list, user-managed labels for grouping items (e.g. "Produce" on a
@@ -82,6 +84,25 @@ model Category {
   id       String @id @default(cuid())
   name     String
   // Manual drag order in the list settings menu — lower sorts first.
+  position Int    @default(0)
+
+  list   List   @relation(fields: [listId], references: [id], onDelete: Cascade)
+  listId String
+
+  items ListItem[]
+
+  @@unique([listId, name])
+}
+
+// Per-list, user-managed status values for project-list items — same shape
+// and management as Category, just a different field. Project lists get
+// "In Progress" / "Completed" / "Canceled" pre-seeded (see PRESET_STATUSES
+// in types.ts); users can add, delete, or reorder them freely. A status
+// named "Completed" (case-insensitive) is kept in sync with the item's
+// isDone checkbox — see COMPLETED_STATUS in types.ts.
+model Status {
+  id       String @id @default(cuid())
+  name     String
   position Int    @default(0)
 
   list   List   @relation(fields: [listId], references: [id], onDelete: Cascade)
@@ -150,6 +171,23 @@ model ListItem {
 
   category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   categoryId String?
+
+  // Project-list fields. Like isRecurring, stored per-item regardless of
+  // the list's kind so they survive a kind change back and forth. Dates are
+  // calendar days (stored as UTC midnight), not instants.
+  startDate DateTime?
+  dueDate   DateTime?
+  // Free text rather than a User relation — the person doing it may not
+  // have an account (a kid, a contractor).
+  person    String?
+  status    Status?   @relation(fields: [statusId], references: [id], onDelete: SetNull)
+  statusId  String?
+  // Another item in the same list this one waits on: until that item is
+  // done, this one is locked and can't be checked off. Single precursor,
+  // no cycles (enforced in updateItem). Deleting the precursor frees it.
+  dependsOn   ListItem?  @relation("ItemDependency", fields: [dependsOnId], references: [id], onDelete: SetNull)
+  dependsOnId String?
+  dependents  ListItem[] @relation("ItemDependency")
 }
 
 model Contact {

@@ -48,6 +48,7 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
               doneCount={list.items.filter((item) => item.isDone).length}
               totalCount={list.items.length}
               categories={list.categories}
+              statuses={list.statuses}
               isOwner={isOwner}
               otherUsers={otherUsers}
               sharedWithIds={sharedWithIds}
@@ -56,7 +57,13 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
             {list.items.length === 0 ? (
               <p className="text-sm text-foreground/60">No items yet — add one above.</p>
             ) : (
-              <ItemList listId={list.id} items={list.items} kind={list.kind as ListKind} categories={list.categories} />
+              <ItemList
+                listId={list.id}
+                items={list.items}
+                kind={list.kind as ListKind}
+                categories={list.categories}
+                statuses={list.statuses}
+              />
             )}
           </ItemSortProvider>
         </ItemEditProvider>
