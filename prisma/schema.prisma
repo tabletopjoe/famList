@@ -75,8 +75,9 @@ model List {
 
 // Per-list, user-managed labels for grouping items (e.g. "Produce" on a
 // shopping list). Shopping and recipe lists get a handful of these
-// pre-seeded at creation (see PRESET_CATEGORIES in types.ts) since those
-// kinds have an obvious default set; other kinds start empty.
+// pre-seeded at creation or when switched to that kind (see
+// PRESET_CATEGORIES in types.ts) since those kinds have an obvious default
+// set; other kinds start empty.
 model Category {
   id       String @id @default(cuid())
   name     String

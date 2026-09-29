@@ -6,7 +6,7 @@ import * as z from "zod";
 import { db } from "@/lib/db";
 import { verifySession } from "@/lib/auth/dal";
 import { canAccessList, visibleToUser } from "./queries";
-import { LIST_KINDS, PRESET_CATEGORIES, RESET_INTERVAL_DAYS } from "./types";
+import { LIST_KINDS, PRESET_CATEGORIES, RESET_INTERVAL_DAYS, type ListKind } from "./types";
 
 export type ActionState = { error: string } | undefined;
 
@@ -52,12 +52,7 @@ export async function createList(_prevState: ActionState, formData: FormData): P
     data: { title: parsed.data.title, createdById: session.userId, kind: parsed.data.kind, position },
   });
 
-  const presets = PRESET_CATEGORIES[parsed.data.kind];
-  if (presets) {
-    await db.category.createMany({
-      data: presets.map((name, i) => ({ listId: list.id, name, position: i })),
-    });
-  }
+  await ensurePresetCategories(list.id, parsed.data.kind);
 
   revalidatePath("/lists");
   redirect(`/lists/${list.id}`);
@@ -133,7 +128,35 @@ export async function setListKind(listId: string, rawKind: string) {
       resetIntervalDays: parsed.data === "shopping" ? undefined : null,
     },
   });
+  await ensurePresetCategories(listId, parsed.data);
   revalidatePath(`/lists/${listId}`);
+}
+
+/**
+ * Tops a list up to its kind's preset categories (PRESET_CATEGORIES) —
+ * adds whichever presets are missing, appended after the existing ones,
+ * and never removes or reorders anything. So switching kinds keeps every
+ * category the list already has (user-added or left over from a previous
+ * kind) and just fills in the new kind's defaults. Name match is
+ * case-insensitive so a user's "produce" isn't doubled by a preset
+ * "Produce".
+ */
+async function ensurePresetCategories(listId: string, kind: ListKind) {
+  const presets = PRESET_CATEGORIES[kind];
+  if (!presets) return;
+
+  const existing = await db.category.findMany({ where: { listId }, select: { name: true, position: true } });
+  const have = new Set(existing.map((c) => c.name.toLowerCase()));
+  const missing = presets.filter((name) => !have.has(name.toLowerCase()));
+  if (missing.length === 0) return;
+
+  const start = existing.reduce((max, c) => Math.max(max, c.position + 1), 0);
+  await db.category.createMany({
+    data: missing.map((name, i) => ({ listId, name, position: start + i })),
+    // A concurrent call (e.g. a double-submitted kind change) may have just
+    // added the same preset — the [listId, name] unique makes that a no-op.
+    skipDuplicates: true,
+  });
 }
 
 export async function setListResetInterval(listId: string, days: number | null) {
