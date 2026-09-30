@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState, useState, useTransition, type ReactNode } from "react";
-import { ExternalLink, Plus, Trash2 } from "lucide-react";
+import { useActionState, useLayoutEffect, useRef, useState, useTransition, type ReactNode } from "react";
+import { ExternalLink, Maximize2, Minimize2, Plus, Trash2 } from "lucide-react";
 import { updateItem, createCategory, createStatus, deleteItem, type ActionState } from "../actions";
 import type { ListKind } from "../types";
 import { externalHref } from "../externalHref";
@@ -117,6 +117,16 @@ function dependencyCandidates(itemId: string, items: SiblingItem[]): SiblingItem
   });
 }
 
+/** Collapsed Notes' max auto-grown height, in px — past this it scrolls (or you expand it). */
+const NOTES_AUTOSIZE_MAX = 320;
+
+/** Fits the textarea to its content, never below its `rows` height or above NOTES_AUTOSIZE_MAX. */
+function autosizeNotes(el: HTMLTextAreaElement) {
+  el.style.height = "auto"; // reset first so it can shrink back down
+  const border = el.offsetHeight - el.clientHeight;
+  el.style.height = `${Math.min(el.scrollHeight + border, NOTES_AUTOSIZE_MAX)}px`;
+}
+
 /**
  * Translucent panel for editing one item's fields — styled to match
  * ListSettingsMenu's panel, but sits in normal flow beneath the single
@@ -160,6 +170,20 @@ export function ItemEditForm({
   const [link, setLink] = useState(item.link ?? "");
   // Controlled for the same reason as categoryId.
   const [statusId, setStatusId] = useState(item.statusId ?? "");
+  // Expanded Notes: moved to the top of the form at most of the screen's
+  // height, other fields below it. Recipe and notes lists open this way,
+  // since the notes are the main content there — without focusing the
+  // field, so a phone's keyboard doesn't cover what you opened it to read.
+  const [notesExpanded, setNotesExpanded] = useState(kind === "recipe" || kind === "notes");
+  const notesRef = useRef<HTMLTextAreaElement>(null);
+  // Collapsed, the textarea grows with its content (up to a cap) instead of
+  // scrolling inside five rows; expanded, its fixed CSS height takes over.
+  useLayoutEffect(() => {
+    const el = notesRef.current;
+    if (!el) return;
+    if (notesExpanded) el.style.height = "";
+    else autosizeNotes(el);
+  }, [notesExpanded]);
   // Delete sits right next to Save, so the first tap only arms it and the
   // second actually deletes — no browser confirm() dialog needed.
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -331,26 +355,53 @@ export function ItemEditForm({
       </div>
     </FieldRow>
   );
-  // Recipe and notes lists get the most out of this form when Notes has the
-  // room — those are the two kinds where it's the main thing being edited.
-  const maximizeNotes = kind === "recipe" || kind === "notes";
+  const NotesToggleIcon = notesExpanded ? Minimize2 : Maximize2;
   const notesField = (
-    <label htmlFor="item-edit-notes" className="block text-sm text-foreground/70">
-      Notes
+    // Expanding moves Notes to the top via CSS `order` rather than by
+    // re-rendering it in a different spot — a moved textarea would remount,
+    // dropping focus and anything typed (it's uncontrolled).
+    <div className={notesExpanded ? "order-first" : undefined}>
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          id="item-edit-notes-label"
+          onClick={() => setNotesExpanded((v) => !v)}
+          className="text-sm text-foreground/70 hover:text-foreground active:opacity-70"
+        >
+          Notes
+        </button>
+        <button
+          type="button"
+          onClick={() => setNotesExpanded((v) => !v)}
+          aria-label={notesExpanded ? "Shrink notes" : "Expand notes"}
+          title={notesExpanded ? "Shrink notes" : "Expand notes"}
+          className="text-foreground/40 hover:text-foreground/70 active:text-foreground"
+        >
+          <NotesToggleIcon className="size-4" strokeWidth={1.75} />
+        </button>
+      </div>
       <textarea
+        ref={notesRef}
         id="item-edit-notes"
         name="notes"
+        aria-labelledby="item-edit-notes-label"
         defaultValue={item.notes ?? ""}
         disabled={pending}
-        rows={maximizeNotes ? 10 : 3}
-        className="mt-1 w-full resize-none rounded-md border border-black/15 bg-white/80 px-2 py-[5px] text-sm text-field-ink placeholder:text-field-ink/40 disabled:opacity-50"
+        rows={5}
+        onFocus={() => setNotesExpanded(true)}
+        onInput={(e) => {
+          if (!notesExpanded) autosizeNotes(e.currentTarget);
+        }}
+        className={`mt-1 w-full resize-none rounded-md border border-black/15 bg-white/80 px-2 py-[5px] text-sm text-field-ink placeholder:text-field-ink/40 disabled:opacity-50 ${
+          notesExpanded ? "h-[65dvh]" : ""
+        }`}
       />
-    </label>
+    </div>
   );
 
   return (
     <div className="mt-3 rounded-lg border border-foreground/15 bg-card-background/70 p-4 shadow-xl backdrop-blur-md">
-      <form action={formAction} className="space-y-3">
+      <form action={formAction} className="flex flex-col gap-3">
         {kind === "recipe" ? (
           <>
             {nameField}
@@ -387,7 +438,14 @@ export function ItemEditForm({
         {categoryField}
         {addCategoryRow}
         {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
-        <div className="flex items-center justify-end gap-2 border-t border-foreground/10 pt-3">
+        {/* Pinned to the bottom of the screen while Notes is expanded, so
+            saving doesn't mean scrolling past every field below it. The
+            negative margins stretch its backdrop across the panel's padding. */}
+        <div
+          className={`flex items-center justify-end gap-2 border-t border-foreground/10 pt-3 ${
+            notesExpanded ? "sticky bottom-0 -mx-4 -mb-4 rounded-b-lg bg-card-background px-4 pb-[calc(1rem+env(safe-area-inset-bottom))]" : ""
+          }`}
+        >
           <button
             type="button"
             onClick={handleDelete}

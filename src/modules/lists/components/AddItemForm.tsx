@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { Plus } from "lucide-react";
 import { addItem, type ActionState } from "../actions";
 import type { ListKind } from "../types";
+import { useItemEdit } from "./ItemEditContext";
 
 type Category = { id: string; name: string };
 
@@ -24,6 +25,12 @@ export function AddItemForm({
   // Like CreateListForm's type selector: focusing the item field reveals the
   // category picker, which then stays up rather than vanishing on blur.
   const [active, setActive] = useState(false);
+  const { editingId } = useItemEdit();
+
+  // Hidden while an item's edit form is open, same as ListControls — on
+  // mobile this bar is pinned to the screen bottom, where it would cover
+  // the edit form's own pinned Save bar (expanded Notes).
+  if (editingId) return null;
 
   return (
     <form
