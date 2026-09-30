@@ -34,7 +34,7 @@ export function UserSearchPicker({
         onChange={(e) => setQuery(e.target.value)}
         placeholder={placeholder}
         disabled={disabled}
-        className="w-full rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-field-ink placeholder:text-field-ink/40 disabled:opacity-50"
+        className="w-full rounded-md border border-black/15 bg-white/80 px-2 py-[5px] text-sm text-field-ink placeholder:text-field-ink/40 disabled:opacity-50"
       />
       {matches.length > 0 ? (
         <ul className="max-h-40 divide-y divide-black/10 overflow-y-auto rounded-md border border-black/15 bg-white/80">
@@ -47,7 +47,7 @@ export function UserSearchPicker({
                   onSelect(u.id);
                   setQuery("");
                 }}
-                className="block w-full px-2 py-1.5 text-left text-sm text-field-ink hover:bg-black/5 active:bg-black/10 disabled:opacity-50"
+                className="block w-full px-2 py-[5px] text-left text-sm text-field-ink hover:bg-black/5 active:bg-black/10 disabled:opacity-50"
               >
                 {u.name}
               </button>
@@ -55,7 +55,7 @@ export function UserSearchPicker({
           ))}
         </ul>
       ) : (
-        <p className="rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-field-ink/50">
+        <p className="rounded-md border border-black/15 bg-white/80 px-2 py-[5px] text-sm text-field-ink/50">
           No matches.
         </p>
       )}

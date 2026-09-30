@@ -110,7 +110,7 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
     <li
       ref={ref}
       style={isDragging ? { transform: `translateY(${dragOffset}px)`, position: "relative", zIndex: 10 } : undefined}
-      className={`flex items-center gap-3 py-2 ${isDragging ? "bg-card-background" : ""}`}
+      className={`flex items-center gap-3 py-1.5 ${isDragging ? "bg-card-background" : ""}`}
     >
       <div className="flex flex-1 items-center gap-3">
         {showCheckbox && (

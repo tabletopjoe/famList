@@ -27,7 +27,7 @@ type Status = { id: string; name: string };
 type SiblingItem = { id: string; label: string; dependsOnId: string | null };
 
 const fieldClass =
-  "min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-field-ink placeholder:text-field-ink/40 disabled:opacity-50";
+  "min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-2 py-[5px] text-sm text-field-ink placeholder:text-field-ink/40 disabled:opacity-50";
 
 /** Label and input side by side, for every field except Notes — keeps rows compact so Notes gets the leftover height. */
 function FieldRow({ id, label, children }: { id: string; label: string; children: ReactNode }) {
@@ -94,7 +94,7 @@ function AddLabelRow({
           disabled={pending}
           aria-label={`Add ${noun}`}
           title={`Add ${noun}`}
-          className="flex size-8 shrink-0 items-center justify-center rounded-md bg-foreground text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
+          className="flex size-7.5 shrink-0 items-center justify-center rounded-md bg-foreground text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
         >
           <Plus className="size-4" strokeWidth={2} />
         </button>
@@ -343,7 +343,7 @@ export function ItemEditForm({
         defaultValue={item.notes ?? ""}
         disabled={pending}
         rows={maximizeNotes ? 10 : 3}
-        className="mt-1 w-full resize-none rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-field-ink placeholder:text-field-ink/40 disabled:opacity-50"
+        className="mt-1 w-full resize-none rounded-md border border-black/15 bg-white/80 px-2 py-[5px] text-sm text-field-ink placeholder:text-field-ink/40 disabled:opacity-50"
       />
     </label>
   );
@@ -393,7 +393,7 @@ export function ItemEditForm({
             onClick={handleDelete}
             onBlur={() => setConfirmingDelete(false)}
             disabled={busy}
-            className={`mr-auto flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors disabled:opacity-50 ${
+            className={`mr-auto flex items-center gap-1.5 rounded-md px-3 py-[5px] text-sm transition-colors disabled:opacity-50 ${
               confirmingDelete
                 ? "bg-red-600 font-medium text-white hover:bg-red-700 active:bg-red-800"
                 : "text-red-500 hover:text-red-600 active:opacity-70"
@@ -406,14 +406,14 @@ export function ItemEditForm({
             type="button"
             onClick={onCancel}
             disabled={busy}
-            className="rounded-md px-3 py-1.5 text-sm text-foreground/70 hover:text-foreground active:opacity-70 disabled:opacity-50"
+            className="rounded-md px-3 py-[5px] text-sm text-foreground/70 hover:text-foreground active:opacity-70 disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={busy}
-            className="rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
+            className="rounded-md bg-foreground px-3 py-[5px] text-sm font-medium text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
           >
             Save
           </button>

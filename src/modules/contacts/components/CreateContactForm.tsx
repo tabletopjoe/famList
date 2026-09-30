@@ -18,7 +18,7 @@ export function CreateContactForm() {
   const [state, formAction, pending] = useActionState(action, undefined);
 
   const inputClass =
-    "rounded-md border border-foreground/10 px-3 py-2 text-sm dark:border-foreground/15 dark:bg-foreground/5";
+    "rounded-md border border-foreground/10 px-3 py-1.5 text-sm dark:border-foreground/15 dark:bg-foreground/5";
 
   return (
     <div className="space-y-3 rounded-lg border border-foreground/10 p-4 dark:border-foreground/15">
@@ -91,7 +91,7 @@ export function CreateContactForm() {
             <button
               type="submit"
               disabled={pending}
-              className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
+              className="rounded-md bg-foreground px-4 py-1.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
             >
               {pending ? "Saving…" : "Save contact"}
             </button>

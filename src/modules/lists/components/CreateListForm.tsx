@@ -19,12 +19,12 @@ export function CreateListForm() {
           placeholder="New list, e.g. Groceries"
           required
           onFocus={() => setActive(true)}
-          className="min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-3 py-2 text-sm text-field-ink placeholder:text-field-ink/40"
+          className="min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-3 py-1.5 text-sm text-field-ink placeholder:text-field-ink/40"
         />
         <button
           type="submit"
           disabled={pending}
-          className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
+          className="rounded-md bg-foreground px-4 py-1.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
         >
           {pending ? "Creating…" : "Create"}
         </button>
@@ -34,7 +34,7 @@ export function CreateListForm() {
           name="kind"
           defaultValue="shopping"
           disabled={pending}
-          className="w-full rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-field-ink disabled:opacity-50"
+          className="w-full rounded-md border border-black/15 bg-white/80 px-2 py-[5px] text-sm text-field-ink disabled:opacity-50"
         />
       )}
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}

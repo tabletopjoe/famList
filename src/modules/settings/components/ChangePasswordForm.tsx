@@ -4,7 +4,7 @@ import { useActionState, useRef } from "react";
 import { changePassword, type ActionState } from "../actions";
 
 const inputClass =
-  "w-full rounded-md border border-foreground/10 px-3 py-2 text-sm dark:border-foreground/15 dark:bg-foreground/5";
+  "w-full rounded-md border border-foreground/10 px-3 py-1.5 text-sm dark:border-foreground/15 dark:bg-foreground/5";
 
 export function ChangePasswordForm() {
   const formRef = useRef<HTMLFormElement>(null);
@@ -46,7 +46,7 @@ export function ChangePasswordForm() {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
+        className="rounded-md bg-foreground px-4 py-1.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
       >
         {pending ? "Updating…" : "Update password"}
       </button>

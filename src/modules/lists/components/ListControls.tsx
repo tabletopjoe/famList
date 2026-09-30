@@ -68,7 +68,7 @@ export function ListControls({
       aria-pressed={sortPanelOpen}
       aria-label={sortPanelOpen ? "Hide sort options" : "Sort items"}
       title={sortPanelOpen ? "Hide sort options" : "Sort items"}
-      className={`flex size-8 shrink-0 items-center justify-center rounded-md transition-colors active:bg-foreground/25 ${
+      className={`flex size-7.5 shrink-0 items-center justify-center rounded-md transition-colors active:bg-foreground/25 ${
         sortPanelOpen ? "bg-foreground/15 text-foreground" : "text-foreground/40 hover:text-foreground/70"
       }`}
     >
@@ -116,7 +116,7 @@ export function ListControls({
         aria-pressed={deleteMode}
         aria-label={deleteMode ? "Done deleting items" : "Delete items"}
         title={deleteMode ? "Done deleting items" : "Delete items"}
-        className={`flex size-8 items-center justify-center rounded-md transition-colors ${
+        className={`flex size-7.5 items-center justify-center rounded-md transition-colors ${
           deleteMode
             ? "bg-red-600/15 text-red-500 active:bg-red-600/25"
             : "text-foreground/40 hover:text-red-600 active:bg-red-600/10 active:text-red-600 dark:hover:text-red-400"
@@ -132,7 +132,7 @@ export function ListControls({
           disabled={isPending || totalCount === 0}
           aria-label={target ? "Check all items" : "Uncheck all items"}
           title={target ? "Check all items" : "Uncheck all items"}
-          className="flex size-8 items-center justify-center rounded-md text-foreground/40 transition-colors hover:bg-foreground/10 hover:text-foreground/70 active:bg-foreground/20 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-foreground/40"
+          className="flex size-7.5 items-center justify-center rounded-md text-foreground/40 transition-colors hover:bg-foreground/10 hover:text-foreground/70 active:bg-foreground/20 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-foreground/40"
         >
           <RefreshCw className="size-4" strokeWidth={1.75} />
         </button>

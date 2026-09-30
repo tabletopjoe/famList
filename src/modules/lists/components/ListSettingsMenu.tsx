@@ -73,7 +73,7 @@ export function ListSettingsMenu({
   }, [open]);
 
   const selectClass =
-    "mt-1 w-full rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-field-ink disabled:opacity-50";
+    "mt-1 w-full rounded-md border border-black/15 bg-white/80 px-2 py-[5px] text-sm text-field-ink disabled:opacity-50";
 
   return (
     <>
@@ -84,7 +84,7 @@ export function ListSettingsMenu({
         aria-expanded={open}
         aria-label="List settings"
         title="List settings"
-        className={`flex size-8 items-center justify-center rounded-md transition-colors active:bg-foreground/25 ${
+        className={`flex size-7.5 items-center justify-center rounded-md transition-colors active:bg-foreground/25 ${
           open ? "bg-foreground/15 text-foreground" : "text-foreground/40 hover:text-foreground/70"
         }`}
       >

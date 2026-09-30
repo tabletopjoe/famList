@@ -43,7 +43,7 @@ export function UserRow({ user, isSelf }: { user: User; isSelf: boolean }) {
             <button
               type="submit"
               disabled={resetPending}
-              className="rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
+              className="rounded-md bg-foreground px-3 py-[5px] text-sm font-medium text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
             >
               Reset password
             </button>
@@ -61,7 +61,7 @@ export function UserRow({ user, isSelf }: { user: User; isSelf: boolean }) {
             }}
             disabled={isSelf || isPending}
             title={isSelf ? "You can't delete your own account" : "Delete account"}
-            className="rounded-md px-3 py-1.5 text-sm font-medium text-red-400 hover:text-red-300 active:text-red-200 disabled:opacity-50"
+            className="rounded-md px-3 py-[5px] text-sm font-medium text-red-400 hover:text-red-300 active:text-red-200 disabled:opacity-50"
           >
             Delete
           </button>

@@ -39,13 +39,13 @@ export function AddItemForm({
           placeholder="Add an item…"
           required
           onFocus={() => setActive(true)}
-          className="min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-3 py-2 text-sm text-field-ink placeholder:text-field-ink/40"
+          className="min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-3 py-1.5 text-sm text-field-ink placeholder:text-field-ink/40"
         />
         {kind === "shopping" && (
           <input
             name="quantity"
             placeholder="Qty"
-            className="w-[38px] min-w-0 shrink-0 rounded-md border border-black/15 bg-white/80 px-1 py-2 text-center text-sm text-field-ink placeholder:text-field-ink/40"
+            className="w-[34px] min-w-0 shrink-0 rounded-md border border-black/15 bg-white/80 px-1 py-1.5 text-center text-sm text-field-ink placeholder:text-field-ink/40"
           />
         )}
         <button
@@ -53,7 +53,7 @@ export function AddItemForm({
           disabled={pending}
           aria-label="Add item"
           title="Add item"
-          className="flex w-[38px] shrink-0 items-center justify-center rounded-md bg-foreground text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
+          className="flex w-[34px] shrink-0 items-center justify-center rounded-md bg-foreground text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
         >
           <Plus className="size-4" strokeWidth={2} />
         </button>
@@ -64,7 +64,7 @@ export function AddItemForm({
           defaultValue=""
           disabled={pending}
           aria-label="Category"
-          className="w-full rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-field-ink disabled:opacity-50"
+          className="w-full rounded-md border border-black/15 bg-white/80 px-2 py-[5px] text-sm text-field-ink disabled:opacity-50"
         >
           <option value="" className="bg-white/80 text-field-ink">
             No category

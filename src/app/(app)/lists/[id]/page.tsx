@@ -29,7 +29,7 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
       <div className="flex items-center gap-3">
         <Link
           href="/lists?view=all"
-          style={{ height: "calc((var(--chrome-size) - 12px) * 0.6)" }}
+          style={{ height: "30px" }}
           className="inline-flex shrink-0 items-center gap-2 rounded-md bg-foreground px-4 text-sm font-medium text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80"
         >
           <ArrowLeft className="size-5" strokeWidth={1.75} />

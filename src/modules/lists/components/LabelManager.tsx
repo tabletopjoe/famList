@@ -73,7 +73,7 @@ export function LabelManager({
                 style={
                   isDragging ? { transform: `translateY(${dragOffset}px)`, position: "relative", zIndex: 10 } : undefined
                 }
-                className={`flex items-center gap-2 rounded-md px-2 py-1.5 ${isDragging ? "bg-foreground/10" : ""}`}
+                className={`flex items-center gap-2 rounded-md px-2 py-[5px] ${isDragging ? "bg-foreground/10" : ""}`}
               >
                 <span className="flex-1 truncate text-sm text-foreground">{label.name}</span>
                 <button
@@ -111,7 +111,7 @@ export function LabelManager({
           }}
           placeholder={`New ${noun}`}
           disabled={addPending}
-          className="min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-2 py-1.5 text-sm text-field-ink placeholder:text-field-ink/40 disabled:opacity-50"
+          className="min-w-0 flex-1 rounded-md border border-black/15 bg-white/80 px-2 py-[5px] text-sm text-field-ink placeholder:text-field-ink/40 disabled:opacity-50"
         />
         <button
           type="button"
@@ -119,7 +119,7 @@ export function LabelManager({
           disabled={addPending}
           aria-label={`Add ${noun}`}
           title={`Add ${noun}`}
-          className="flex size-8 shrink-0 items-center justify-center rounded-md bg-foreground text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
+          className="flex size-7.5 shrink-0 items-center justify-center rounded-md bg-foreground text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80 disabled:opacity-50"
         >
           <Plus className="size-4" strokeWidth={2} />
         </button>
