@@ -171,10 +171,9 @@ export function ItemEditForm({
   // Controlled for the same reason as categoryId.
   const [statusId, setStatusId] = useState(item.statusId ?? "");
   // Expanded Notes: moved to the top of the form at most of the screen's
-  // height, other fields below it. Recipe and notes lists open this way,
-  // since the notes are the main content there — without focusing the
-  // field, so a phone's keyboard doesn't cover what you opened it to read.
-  const [notesExpanded, setNotesExpanded] = useState(kind === "recipe" || kind === "notes");
+  // height, other fields below it. Every kind opens collapsed; the Notes
+  // label, its expand icon, or focusing the field expands it.
+  const [notesExpanded, setNotesExpanded] = useState(false);
   const notesRef = useRef<HTMLTextAreaElement>(null);
   // Collapsed, the textarea grows with its content (up to a cap) instead of
   // scrolling inside five rows; expanded, its fixed CSS height takes over.
