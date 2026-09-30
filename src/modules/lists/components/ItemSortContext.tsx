@@ -2,9 +2,14 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-export type ItemSort = "custom" | "category";
+/** "checked" is shopping lists only — see ItemList, which falls back to "custom" for other kinds. */
+export type ItemSort = "custom" | "category" | "checked";
 /** Only meaningful when itemSort is "category": group categories by their own drag order, or alphabetically. */
 export type CategorySortDir = "position" | "alpha";
+/** Only meaningful when itemSort is "checked": which of the two groups comes first. */
+export type CheckedSortDir = "unchecked" | "checked";
+
+type StoredSort = { itemSort: ItemSort; categoryDir: CategorySortDir; checkedDir: CheckedSortDir };
 
 type ItemSortState = {
   /** Whether the sort chip row is showing in place of ListControls' usual buttons — independent of which sort is actually active. */
@@ -14,6 +19,8 @@ type ItemSortState = {
   setItemSort: (sort: ItemSort) => void;
   categoryDir: CategorySortDir;
   setCategoryDir: (dir: CategorySortDir) => void;
+  checkedDir: CheckedSortDir;
+  setCheckedDir: (dir: CheckedSortDir) => void;
 };
 
 const ItemSortContext = createContext<ItemSortState | null>(null);
@@ -23,14 +30,17 @@ function storageKey(listId: string) {
 }
 
 /** Reads this browser's remembered sort for listId, if any — never touched during SSR (see the mount-time effect below, not this). */
-function readStored(listId: string): { itemSort: ItemSort; categoryDir: CategorySortDir } | null {
+function readStored(listId: string): StoredSort | null {
   try {
     const raw = localStorage.getItem(storageKey(listId));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (parsed.itemSort !== "custom" && parsed.itemSort !== "category") return null;
+    if (parsed.itemSort !== "custom" && parsed.itemSort !== "category" && parsed.itemSort !== "checked") return null;
     if (parsed.categoryDir !== "position" && parsed.categoryDir !== "alpha") return null;
-    return { itemSort: parsed.itemSort, categoryDir: parsed.categoryDir };
+    // Absent in values saved before the Checked sort existed — default it
+    // rather than discarding the rest of the remembered sort.
+    const checkedDir: CheckedSortDir = parsed.checkedDir === "checked" ? "checked" : "unchecked";
+    return { itemSort: parsed.itemSort, categoryDir: parsed.categoryDir, checkedDir };
   } catch {
     return null;
   }
@@ -49,6 +59,7 @@ export function ItemSortProvider({ listId, children }: { listId: string; childre
   const [sortPanelOpen, setSortPanelOpen] = useState(false);
   const [itemSort, setItemSortState] = useState<ItemSort>("custom");
   const [categoryDir, setCategoryDirState] = useState<CategorySortDir>("position");
+  const [checkedDir, setCheckedDirState] = useState<CheckedSortDir>("unchecked");
 
   // Deferred to a mount-time effect (rather than useState's lazy initializer)
   // so the server-rendered markup and the client's first render match —
@@ -64,10 +75,11 @@ export function ItemSortProvider({ listId, children }: { listId: string; childre
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setItemSortState(stored.itemSort);
       setCategoryDirState(stored.categoryDir);
+      setCheckedDirState(stored.checkedDir);
     }
   }, [listId]);
 
-  function persist(next: { itemSort: ItemSort; categoryDir: CategorySortDir }) {
+  function persist(next: StoredSort) {
     try {
       localStorage.setItem(storageKey(listId), JSON.stringify(next));
     } catch {
@@ -78,12 +90,17 @@ export function ItemSortProvider({ listId, children }: { listId: string; childre
 
   function setItemSort(sort: ItemSort) {
     setItemSortState(sort);
-    persist({ itemSort: sort, categoryDir });
+    persist({ itemSort: sort, categoryDir, checkedDir });
   }
 
   function setCategoryDir(dir: CategorySortDir) {
     setCategoryDirState(dir);
-    persist({ itemSort, categoryDir: dir });
+    persist({ itemSort, categoryDir: dir, checkedDir });
+  }
+
+  function setCheckedDir(dir: CheckedSortDir) {
+    setCheckedDirState(dir);
+    persist({ itemSort, categoryDir, checkedDir: dir });
   }
 
   return (
@@ -95,6 +112,8 @@ export function ItemSortProvider({ listId, children }: { listId: string; childre
         setItemSort,
         categoryDir,
         setCategoryDir,
+        checkedDir,
+        setCheckedDir,
       }}
     >
       {children}

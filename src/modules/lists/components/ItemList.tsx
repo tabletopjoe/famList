@@ -43,7 +43,10 @@ export function ItemList({
   statuses: Status[];
 }) {
   const { editingId, setEditingId } = useItemEdit();
-  const { itemSort, categoryDir } = useItemSort();
+  const { itemSort: storedSort, categoryDir, checkedDir } = useItemSort();
+  // The Checked sort is shopping-only — a remembered "checked" on a list
+  // that's since changed kind just shows the default order.
+  const itemSort = storedSort === "checked" && kind !== "shopping" ? "custom" : storedSort;
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   const itemsById = new Map(items.map((i) => [i.id, i]));
@@ -63,9 +66,9 @@ export function ItemList({
   // top) with the edit form beneath it — everything else stays hidden
   // until Save or Cancel closes it.
   const visibleIds = editingId ? order.filter((id) => id === editingId) : order;
-  // Dragging only reorders ListItem.position, which the category sort
-  // doesn't display by — hide the handle there, same reasoning as
-  // ListCardList's non-custom sorts.
+  // Dragging only reorders ListItem.position within a flat list — the
+  // grouped sorts (category, checked) lay items out differently, so hide
+  // the handle there, same reasoning as ListCardList's non-custom sorts.
   const draggable = itemSort === "custom";
 
   function renderRow(id: string) {
@@ -117,10 +120,24 @@ export function ItemList({
       else uncategorized.push(id);
     }
 
-    const result = groups.filter((g) => g.ids.length > 0);
-    if (uncategorized.length > 0) result.push({ id: null, name: "Uncategorized", ids: uncategorized });
+    const result = groups
+      .filter((g) => g.ids.length > 0)
+      .map((g) => ({ key: g.id as string, name: g.name, ids: g.ids }));
+    if (uncategorized.length > 0) result.push({ key: "uncategorized", name: "Uncategorized", ids: uncategorized });
     return result;
   }
+
+  // Shopping lists: unchecked vs. checked, in whichever order checkedDir
+  // says. Items within each keep their existing relative order.
+  function groupByChecked() {
+    const unchecked = { key: "unchecked", name: "Unchecked", ids: order.filter((id) => !itemsById.get(id)?.isDone) };
+    const checked = { key: "checked", name: "Checked", ids: order.filter((id) => itemsById.get(id)?.isDone) };
+    const ordered = checkedDir === "checked" ? [checked, unchecked] : [unchecked, checked];
+    return ordered.filter((g) => g.ids.length > 0);
+  }
+
+  const groups =
+    editingId || itemSort === "custom" ? null : itemSort === "category" ? groupByCategory() : groupByChecked();
 
   function toggleGroup(key: string) {
     setCollapsedGroups((prev) => {
@@ -133,10 +150,10 @@ export function ItemList({
 
   return (
     <>
-      {!editingId && itemSort === "category" ? (
+      {groups ? (
         <div className="space-y-3">
-          {groupByCategory().map((group) => {
-            const key = group.id ?? "uncategorized";
+          {groups.map((group) => {
+            const key = group.key;
             const collapsed = collapsedGroups.has(key);
             return (
               <div key={key}>

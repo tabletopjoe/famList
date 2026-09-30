@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { RefreshCw, Trash2, ArrowUpDown, ArrowDownAZ, ListOrdered } from "lucide-react";
+import { RefreshCw, Trash2, ArrowUpDown, ArrowDownAZ, ListOrdered, Square, SquareCheck } from "lucide-react";
 import { setAllItemsDone } from "../actions";
 import { useDeleteMode } from "./DeleteModeContext";
 import { useItemEdit } from "./ItemEditContext";
@@ -49,7 +49,8 @@ export function ListControls({
 }) {
   const { deleteMode, toggle } = useDeleteMode();
   const { editingId } = useItemEdit();
-  const { sortPanelOpen, toggleSortPanel, itemSort, setItemSort, categoryDir, setCategoryDir } = useItemSort();
+  const { sortPanelOpen, toggleSortPanel, itemSort, setItemSort, categoryDir, setCategoryDir, checkedDir, setCheckedDir } =
+    useItemSort();
   const [isPending, startTransition] = useTransition();
 
   // Majority-checked -> uncheck all; otherwise (majority unchecked, or an
@@ -81,7 +82,13 @@ export function ListControls({
       <div className="flex items-center gap-2">
         {sortToggleButton}
         <div className="flex flex-nowrap gap-2 overflow-x-auto">
-          <button type="button" onClick={() => setItemSort("custom")} className={chipClass(itemSort === "custom")}>
+          <button
+            type="button"
+            onClick={() => setItemSort("custom")}
+            // A remembered "checked" on a non-shopping list displays as
+            // Custom (see ItemList), so light this chip up for it too.
+            className={chipClass(itemSort === "custom" || (itemSort === "checked" && kind !== "shopping"))}
+          >
             Custom
           </button>
           <button
@@ -103,6 +110,26 @@ export function ListControls({
                 <ListOrdered className="size-3" strokeWidth={2} />
               ))}
           </button>
+          {/* Shopping lists only. Same tap-again-to-flip pattern as
+              Category: the icon shows which group is currently on top. */}
+          {kind === "shopping" && (
+            <button
+              type="button"
+              onClick={() => {
+                if (itemSort === "checked") setCheckedDir(checkedDir === "unchecked" ? "checked" : "unchecked");
+                else setItemSort("checked");
+              }}
+              className={chipClass(itemSort === "checked")}
+            >
+              Checked
+              {itemSort === "checked" &&
+                (checkedDir === "checked" ? (
+                  <SquareCheck className="size-3" strokeWidth={2} />
+                ) : (
+                  <Square className="size-3" strokeWidth={2} />
+                ))}
+            </button>
+          )}
         </div>
       </div>
     );
