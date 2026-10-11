@@ -9,7 +9,18 @@ export type CategorySortDir = "position" | "alpha";
 /** Only meaningful when itemSort is "checked": which of the two groups comes first. */
 export type CheckedSortDir = "unchecked" | "checked";
 
-type StoredSort = { itemSort: ItemSort; categoryDir: CategorySortDir; checkedDir: CheckedSortDir };
+/** ItemList's group key for checked-off items on checklist lists (shopping, project) — see ItemList. */
+export const DONE_GROUP_KEY = "done";
+
+type StoredSort = {
+  itemSort: ItemSort;
+  categoryDir: CategorySortDir;
+  checkedDir: CheckedSortDir;
+  /** Keys of collapsed ItemList groups (category ids, "uncategorized", "unchecked", and "done:<category id>" for the done group's category sub-groups). */
+  collapsedGroups: string[];
+  /** The done group is the one group that starts collapsed, so it's tracked as "opened" rather than "collapsed". */
+  doneGroupOpen: boolean;
+};
 
 type ItemSortState = {
   /** Whether the sort chip row is showing in place of ListControls' usual buttons — independent of which sort is actually active. */
@@ -21,6 +32,8 @@ type ItemSortState = {
   setCategoryDir: (dir: CategorySortDir) => void;
   checkedDir: CheckedSortDir;
   setCheckedDir: (dir: CheckedSortDir) => void;
+  isGroupCollapsed: (key: string) => boolean;
+  toggleGroup: (key: string) => void;
 };
 
 const ItemSortContext = createContext<ItemSortState | null>(null);
@@ -40,7 +53,12 @@ function readStored(listId: string): StoredSort | null {
     // Absent in values saved before the Checked sort existed — default it
     // rather than discarding the rest of the remembered sort.
     const checkedDir: CheckedSortDir = parsed.checkedDir === "checked" ? "checked" : "unchecked";
-    return { itemSort: parsed.itemSort, categoryDir: parsed.categoryDir, checkedDir };
+    // Likewise absent before group collapse state was remembered.
+    const collapsedGroups = Array.isArray(parsed.collapsedGroups)
+      ? parsed.collapsedGroups.filter((k: unknown): k is string => typeof k === "string")
+      : [];
+    const doneGroupOpen = parsed.doneGroupOpen === true;
+    return { itemSort: parsed.itemSort, categoryDir: parsed.categoryDir, checkedDir, collapsedGroups, doneGroupOpen };
   } catch {
     return null;
   }
@@ -49,9 +67,9 @@ function readStored(listId: string): StoredSort | null {
 /**
  * Shared between ListControls (the toggle icon + chips) and ItemList (the
  * actual grouping/ordering) — same pattern as DeleteModeContext/
- * ItemEditContext, plus persistence: itemSort/categoryDir are remembered
- * per list (browser-local, not synced) so reopening a list you'd set to
- * "Category" still shows it that way. sortPanelOpen deliberately isn't
+ * ItemEditContext, plus persistence: the sort and which groups are
+ * collapsed are remembered per list (browser-local, not synced) so
+ * reopening a list shows it the way you left it. sortPanelOpen deliberately isn't
  * persisted — that's just whether the chip row happens to be showing, not
  * a view preference.
  */
@@ -60,6 +78,8 @@ export function ItemSortProvider({ listId, children }: { listId: string; childre
   const [itemSort, setItemSortState] = useState<ItemSort>("custom");
   const [categoryDir, setCategoryDirState] = useState<CategorySortDir>("position");
   const [checkedDir, setCheckedDirState] = useState<CheckedSortDir>("unchecked");
+  const [collapsedGroups, setCollapsedGroups] = useState<string[]>([]);
+  const [doneGroupOpen, setDoneGroupOpen] = useState(false);
 
   // Deferred to a mount-time effect (rather than useState's lazy initializer)
   // so the server-rendered markup and the client's first render match —
@@ -76,10 +96,13 @@ export function ItemSortProvider({ listId, children }: { listId: string; childre
       setItemSortState(stored.itemSort);
       setCategoryDirState(stored.categoryDir);
       setCheckedDirState(stored.checkedDir);
+      setCollapsedGroups(stored.collapsedGroups);
+      setDoneGroupOpen(stored.doneGroupOpen);
     }
   }, [listId]);
 
-  function persist(next: StoredSort) {
+  function persist(patch: Partial<StoredSort>) {
+    const next: StoredSort = { itemSort, categoryDir, checkedDir, collapsedGroups, doneGroupOpen, ...patch };
     try {
       localStorage.setItem(storageKey(listId), JSON.stringify(next));
     } catch {
@@ -90,17 +113,32 @@ export function ItemSortProvider({ listId, children }: { listId: string; childre
 
   function setItemSort(sort: ItemSort) {
     setItemSortState(sort);
-    persist({ itemSort: sort, categoryDir, checkedDir });
+    persist({ itemSort: sort });
   }
 
   function setCategoryDir(dir: CategorySortDir) {
     setCategoryDirState(dir);
-    persist({ itemSort, categoryDir: dir, checkedDir });
+    persist({ categoryDir: dir });
   }
 
   function setCheckedDir(dir: CheckedSortDir) {
     setCheckedDirState(dir);
-    persist({ itemSort, categoryDir, checkedDir: dir });
+    persist({ checkedDir: dir });
+  }
+
+  function isGroupCollapsed(key: string) {
+    return key === DONE_GROUP_KEY ? !doneGroupOpen : collapsedGroups.includes(key);
+  }
+
+  function toggleGroup(key: string) {
+    if (key === DONE_GROUP_KEY) {
+      setDoneGroupOpen(!doneGroupOpen);
+      persist({ doneGroupOpen: !doneGroupOpen });
+      return;
+    }
+    const next = collapsedGroups.includes(key) ? collapsedGroups.filter((k) => k !== key) : [...collapsedGroups, key];
+    setCollapsedGroups(next);
+    persist({ collapsedGroups: next });
   }
 
   return (
@@ -114,6 +152,8 @@ export function ItemSortProvider({ listId, children }: { listId: string; childre
         setCategoryDir,
         checkedDir,
         setCheckedDir,
+        isGroupCollapsed,
+        toggleGroup,
       }}
     >
       {children}

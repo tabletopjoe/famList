@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { ChevronDown } from "lucide-react";
 import { reorderItems } from "../actions";
 import { useDragReorder } from "@/hooks/useDragReorder";
-import type { ListKind } from "../types";
+import { isChecklistKind, type ListKind } from "../types";
 import { ItemEditForm } from "./ItemEditForm";
 import { useItemEdit } from "./ItemEditContext";
-import { useItemSort } from "./ItemSortContext";
+import { DONE_GROUP_KEY, useItemSort } from "./ItemSortContext";
 import { ItemRow } from "./ItemRow";
 
 type Item = {
@@ -28,6 +28,8 @@ type Item = {
 
 type Category = { id: string; name: string };
 type Status = { id: string; name: string };
+/** `subgroups`, when set, render nested inside the group instead of a flat `ids` list. */
+type Group = { key: string; name: string; ids: string[]; subgroups?: Group[] };
 
 export function ItemList({
   listId,
@@ -43,11 +45,10 @@ export function ItemList({
   statuses: Status[];
 }) {
   const { editingId, setEditingId } = useItemEdit();
-  const { itemSort: storedSort, categoryDir, checkedDir } = useItemSort();
+  const { itemSort: storedSort, categoryDir, checkedDir, isGroupCollapsed, toggleGroup } = useItemSort();
   // The Checked sort is shopping-only — a remembered "checked" on a list
   // that's since changed kind just shows the default order.
   const itemSort = storedSort === "checked" && kind !== "shopping" ? "custom" : storedSort;
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   const itemsById = new Map(items.map((i) => [i.id, i]));
   const statusesById = new Map(statuses.map((st) => [st.id, st]));
@@ -70,6 +71,15 @@ export function ItemList({
   // grouped sorts (category, checked) lay items out differently, so hide
   // the handle there, same reasoning as ListCardList's non-custom sorts.
   const draggable = itemSort === "custom";
+
+  // Checklist lists (shopping, project): checked-off items always move into
+  // their own group at the bottom — collapsed unless opened, and remembered
+  // per list — whatever the sort. Everything below groups only `activeIds`.
+  const groupsDone = isChecklistKind(kind);
+  const isDone = (id: string) => itemsById.get(id)?.isDone ?? false;
+  const activeIds = groupsDone ? order.filter((id) => !isDone(id)) : order;
+  const doneIds = groupsDone ? order.filter(isDone) : [];
+  const doneGroup: Group = { key: DONE_GROUP_KEY, name: kind === "project" ? "Completed" : "Checked", ids: doneIds };
 
   function renderRow(id: string) {
     const item = itemsById.get(id);
@@ -106,14 +116,16 @@ export function ItemList({
   // Groups items under their category (in the category's own drag order, or
   // alphabetically — see ItemSortContext), uncategorized items last. Items
   // within a group keep their existing relative order.
-  function groupByCategory() {
+  // `keyPrefix` keeps the done group's category sub-groups' collapse state
+  // separate from the main category groups of the same name.
+  function groupByCategory(ids: string[], keyPrefix = ""): Group[] {
     const orderedCategories =
       categoryDir === "alpha" ? [...categories].sort((a, b) => a.name.localeCompare(b.name)) : categories;
     const groups = orderedCategories.map((c) => ({ id: c.id as string | null, name: c.name, ids: [] as string[] }));
     const groupById = new Map(groups.map((g) => [g.id, g]));
     const uncategorized: string[] = [];
 
-    for (const id of order) {
+    for (const id of ids) {
       const item = itemsById.get(id);
       const group = item?.categoryId ? groupById.get(item.categoryId) : undefined;
       if (group) group.ids.push(id);
@@ -122,65 +134,72 @@ export function ItemList({
 
     const result = groups
       .filter((g) => g.ids.length > 0)
-      .map((g) => ({ key: g.id as string, name: g.name, ids: g.ids }));
-    if (uncategorized.length > 0) result.push({ key: "uncategorized", name: "Uncategorized", ids: uncategorized });
+      .map((g) => ({ key: `${keyPrefix}${g.id}`, name: g.name, ids: g.ids }));
+    if (uncategorized.length > 0) {
+      result.push({ key: `${keyPrefix}uncategorized`, name: "Uncategorized", ids: uncategorized });
+    }
     return result;
   }
 
   // Shopping lists: unchecked vs. checked, in whichever order checkedDir
   // says. Items within each keep their existing relative order.
-  function groupByChecked() {
-    const unchecked = { key: "unchecked", name: "Unchecked", ids: order.filter((id) => !itemsById.get(id)?.isDone) };
-    const checked = { key: "checked", name: "Checked", ids: order.filter((id) => itemsById.get(id)?.isDone) };
-    const ordered = checkedDir === "checked" ? [checked, unchecked] : [unchecked, checked];
-    return ordered.filter((g) => g.ids.length > 0);
+  function groupByChecked(): Group[] {
+    const unchecked: Group = { key: "unchecked", name: "Unchecked", ids: activeIds };
+    return checkedDir === "checked" ? [doneGroup, unchecked] : [unchecked, doneGroup];
   }
 
-  const groups =
-    editingId || itemSort === "custom" ? null : itemSort === "category" ? groupByCategory() : groupByChecked();
+  // `flatIds` renders as a plain, header-less list above any `groups`.
+  let flatIds: string[] = [];
+  let groups: Group[] = [];
+  if (editingId) flatIds = visibleIds;
+  else if (itemSort === "category") {
+    // Checked-off items stay grouped by category too, nested under the done group.
+    groups = [...groupByCategory(activeIds), { ...doneGroup, subgroups: groupByCategory(doneIds, `${DONE_GROUP_KEY}:`) }];
+  }
+  else if (itemSort === "checked") groups = groupByChecked();
+  else {
+    flatIds = activeIds;
+    groups = [doneGroup];
+  }
+  groups = groups.filter((g) => g.ids.length > 0);
 
-  function toggleGroup(key: string) {
-    setCollapsedGroups((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
+  function renderGroup(group: Group, nested = false) {
+    const key = group.key;
+    const collapsed = isGroupCollapsed(key);
+    return (
+      <div key={key} className={nested ? "pl-3" : undefined}>
+        <button
+          type="button"
+          onClick={() => toggleGroup(key)}
+          aria-expanded={!collapsed}
+          className="flex w-full items-center justify-between gap-2 py-1 text-left"
+        >
+          <span className="text-xs font-medium tracking-wide text-foreground/40 uppercase">
+            {group.name} <span className="text-foreground/30">({group.ids.length})</span>
+          </span>
+          <ChevronDown
+            className={`size-3.5 shrink-0 text-foreground/40 transition-transform ${collapsed ? "" : "rotate-180"}`}
+            strokeWidth={1.75}
+          />
+        </button>
+        {!collapsed &&
+          (group.subgroups ? (
+            <div className="mt-1 space-y-2">{group.subgroups.map((sub) => renderGroup(sub, true))}</div>
+          ) : (
+            <ul className="divide-y divide-foreground/10 dark:divide-foreground/15">{group.ids.map(renderRow)}</ul>
+          ))}
+      </div>
+    );
   }
 
   return (
     <>
-      {groups ? (
-        <div className="space-y-3">
-          {groups.map((group) => {
-            const key = group.key;
-            const collapsed = collapsedGroups.has(key);
-            return (
-              <div key={key}>
-                <button
-                  type="button"
-                  onClick={() => toggleGroup(key)}
-                  aria-expanded={!collapsed}
-                  className="flex w-full items-center justify-between gap-2 py-1 text-left"
-                >
-                  <span className="text-xs font-medium tracking-wide text-foreground/40 uppercase">
-                    {group.name} <span className="text-foreground/30">({group.ids.length})</span>
-                  </span>
-                  <ChevronDown
-                    className={`size-3.5 shrink-0 text-foreground/40 transition-transform ${collapsed ? "" : "rotate-180"}`}
-                    strokeWidth={1.75}
-                  />
-                </button>
-                {!collapsed && (
-                  <ul className="divide-y divide-foreground/10 dark:divide-foreground/15">{group.ids.map(renderRow)}</ul>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <ul className="divide-y divide-foreground/10 dark:divide-foreground/15">{visibleIds.map(renderRow)}</ul>
-      )}
+      <div className="space-y-3">
+        {flatIds.length > 0 && (
+          <ul className="divide-y divide-foreground/10 dark:divide-foreground/15">{flatIds.map(renderRow)}</ul>
+        )}
+        {groups.map((group) => renderGroup(group))}
+      </div>
       {editingId &&
         (() => {
           const item = itemsById.get(editingId);
