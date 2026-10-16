@@ -37,6 +37,8 @@ type ItemRowProps = {
     isRecurring: boolean;
   };
   project?: ProjectInfo;
+  /** Shopping lists with an auto-reset interval only (see ItemList) — the recurring/one-off clock toggle means nothing when checked-off items never reset. */
+  showRecurring?: boolean;
   /** Tapping the item's text space opens ItemEditForm for it (see ItemList). */
   onEdit: () => void;
   /** Press-and-drag reordering (see ItemList) — the only way to reorder now, on every breakpoint. */
@@ -46,7 +48,7 @@ type ItemRowProps = {
 };
 
 export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
-  { listId, kind, item, project, onEdit, dragHandleProps, isDragging, dragOffset = 0 },
+  { listId, kind, item, project, showRecurring, onEdit, dragHandleProps, isDragging, dragOffset = 0 },
   ref,
 ) {
   const [isPending, startTransition] = useTransition();
@@ -163,11 +165,11 @@ export const ItemRow = forwardRef<HTMLLIElement, ItemRowProps>(function ItemRow(
           </button>
         ) : (
           <>
-            {/* Shopping lists only: recurring vs. one-off — governs whether
-                checking this off auto-resets it later (see
-                ListItem.isRecurring in schema.prisma). Crossed out (in
-                addition to the fade) when it's a one-off. */}
-            {kind === "shopping" && (
+            {/* Shopping lists with an auto-reset interval only: recurring vs.
+                one-off — governs whether checking this off auto-resets it
+                later (see ListItem.isRecurring in schema.prisma). Crossed out
+                (in addition to the fade) when it's a one-off. */}
+            {showRecurring && (
               <button
                 onClick={() => startTransition(() => setItemRecurring(listId, item.id, !item.isRecurring))}
                 disabled={isPending}

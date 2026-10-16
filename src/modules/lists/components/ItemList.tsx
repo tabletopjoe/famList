@@ -35,12 +35,14 @@ export function ItemList({
   listId,
   items,
   kind,
+  resetIntervalDays,
   categories,
   statuses,
 }: {
   listId: string;
   items: Item[];
   kind: ListKind;
+  resetIntervalDays: number | null;
   categories: Category[];
   statuses: Status[];
 }) {
@@ -105,6 +107,9 @@ export function ItemList({
         item={item}
         kind={kind}
         project={project}
+        // Checked-off recurrence set to "Never" (null) means nothing ever
+        // resets, so the per-item recurring toggle would have no effect.
+        showRecurring={kind === "shopping" && resetIntervalDays != null}
         onEdit={() => setEditingId(id)}
         isDragging={draggingId === id}
         dragOffset={draggingId === id ? dragOffset : 0}

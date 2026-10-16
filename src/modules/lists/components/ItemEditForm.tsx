@@ -170,10 +170,13 @@ export function ItemEditForm({
   const [link, setLink] = useState(item.link ?? "");
   // Controlled for the same reason as categoryId.
   const [statusId, setStatusId] = useState(item.statusId ?? "");
-  // Expanded Notes: moved to the top of the form at most of the screen's
-  // height, other fields below it. Every kind opens collapsed; the Notes
-  // label, its expand icon, or focusing the field expands it.
+  // Every kind opens with Notes collapsed; the Notes label, its expand icon,
+  // or focusing the field expands it. On recipe and notes lists, where the
+  // notes are the main content, expanded means moved to the top of the form
+  // at most of the screen's height (Save pinned below). Everywhere else it
+  // just grows in place to about a third of the screen.
   const [notesExpanded, setNotesExpanded] = useState(false);
+  const notesFullScreen = notesExpanded && (kind === "recipe" || kind === "notes");
   const notesRef = useRef<HTMLTextAreaElement>(null);
   // Collapsed, the textarea grows with its content (up to a cap) instead of
   // scrolling inside five rows; expanded, its fixed CSS height takes over.
@@ -359,7 +362,7 @@ export function ItemEditForm({
     // Expanding moves Notes to the top via CSS `order` rather than by
     // re-rendering it in a different spot — a moved textarea would remount,
     // dropping focus and anything typed (it's uncontrolled).
-    <div className={notesExpanded ? "order-first" : undefined}>
+    <div className={notesFullScreen ? "order-first" : undefined}>
       <div className="flex items-center justify-between">
         <button
           type="button"
@@ -392,7 +395,7 @@ export function ItemEditForm({
           if (!notesExpanded) autosizeNotes(e.currentTarget);
         }}
         className={`mt-1 w-full resize-none rounded-md border border-black/15 bg-white/80 px-2 py-[5px] text-sm text-field-ink placeholder:text-field-ink/40 disabled:opacity-50 ${
-          notesExpanded ? "h-[65dvh]" : ""
+          notesFullScreen ? "h-[65dvh]" : notesExpanded ? "h-[33dvh]" : ""
         }`}
       />
     </div>
@@ -437,12 +440,13 @@ export function ItemEditForm({
         {categoryField}
         {addCategoryRow}
         {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
-        {/* Pinned to the bottom of the screen while Notes is expanded, so
-            saving doesn't mean scrolling past every field below it. The
-            negative margins stretch its backdrop across the panel's padding. */}
+        {/* Pinned to the bottom of the screen while Notes is expanded full
+            screen, so saving doesn't mean scrolling past every field below
+            it. The negative margins stretch its backdrop across the panel's
+            padding. */}
         <div
           className={`flex items-center justify-end gap-2 border-t border-foreground/10 pt-3 ${
-            notesExpanded ? "sticky bottom-0 -mx-4 -mb-4 rounded-b-lg bg-card-background px-4 pb-[calc(1rem+env(safe-area-inset-bottom))]" : ""
+            notesFullScreen ? "sticky bottom-0 -mx-4 -mb-4 rounded-b-lg bg-card-background px-4 pb-[calc(1rem+env(safe-area-inset-bottom))]" : ""
           }`}
         >
           <button
