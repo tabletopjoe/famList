@@ -53,7 +53,7 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
               otherUsers={otherUsers}
               sharedWithIds={sharedWithIds}
             />
-            <AddItemForm listId={list.id} kind={list.kind as ListKind} categories={list.categories} />
+            <AddItemForm listId={list.id} kind={list.kind as ListKind} categories={list.categories} items={list.items} />
             {list.items.length === 0 ? (
               <p className="text-sm text-foreground/60">No items yet — add one above.</p>
             ) : (
