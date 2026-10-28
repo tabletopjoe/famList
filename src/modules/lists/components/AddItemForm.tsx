@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { Plus } from "lucide-react";
-import { addItem, type ActionState } from "../actions";
+import { useActionState, useRef, useState, useTransition } from "react";
+import { Plus, RotateCcw } from "lucide-react";
+import { addItem, toggleItem, type ActionState } from "../actions";
 import type { ListKind } from "../types";
 import { useItemEdit } from "./ItemEditContext";
 
@@ -54,9 +54,21 @@ export function AddItemForm({
   // Like CreateListForm's type selector: focusing the item field reveals the
   // category picker, which then stays up rather than vanishing on blur.
   const [active, setActive] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [uncheckPending, startUncheck] = useTransition();
   const { editingId } = useItemEdit();
   const matches = findMatches(items, query);
   const exactMatch = matches.some((m) => m.label.trim().toLowerCase() === query.trim().toLowerCase());
+
+  // Tapping a checked-off match puts it back on the list instead of adding
+  // a duplicate — then clears the field, since there's nothing left to add.
+  function uncheck(itemId: string) {
+    startUncheck(async () => {
+      await toggleItem(listId, itemId, false);
+      formRef.current?.reset();
+      setQuery("");
+    });
+  }
 
   // Hidden while an item's edit form is open, same as ListControls — on
   // mobile this bar is pinned to the screen bottom, where it would cover
@@ -70,6 +82,7 @@ export function AddItemForm({
 
   return (
     <form
+      ref={formRef}
       action={formAction}
       // Mobile: pinned along the bottom of the screen for one-thumb reach,
       // full-bleed regardless of <main>'s side padding. Desktop/tablet (md:)
@@ -78,7 +91,8 @@ export function AddItemForm({
     >
       {/* Search display: as you type, the items already on the list that
           match, right above the field (on mobile, the pinned bar grows
-          upward to fit it). Checked-off items show struck through. */}
+          upward to fit it). Checked-off items show struck through, and
+          tapping one unchecks it. */}
       {query.trim() && (
         <div aria-live="polite" className="text-sm">
           {matches.length === 0 ? (
@@ -89,11 +103,29 @@ export function AddItemForm({
                 {exactMatch ? "Already on this list" : "On this list"}
               </p>
               <ul className="mt-0.5 divide-y divide-foreground/10 dark:divide-foreground/15">
-                {matches.slice(0, MAX_MATCHES).map((m) => (
-                  <li key={m.id} className={`truncate py-1 ${m.isDone ? "text-foreground/40 line-through" : ""}`}>
-                    {m.label}
-                  </li>
-                ))}
+                {matches.slice(0, MAX_MATCHES).map((m) =>
+                  m.isDone ? (
+                    <li key={m.id}>
+                      <button
+                        type="button"
+                        onClick={() => uncheck(m.id)}
+                        disabled={uncheckPending}
+                        title="Uncheck — put it back on the list"
+                        className="flex w-full items-center gap-2 py-1 text-left text-foreground/40 hover:text-foreground/70 active:opacity-60 disabled:opacity-50"
+                      >
+                        <span className="min-w-0 flex-1 truncate line-through">{m.label}</span>
+                        <span className="flex shrink-0 items-center gap-1 text-xs">
+                          <RotateCcw className="size-3.5" strokeWidth={1.75} aria-hidden />
+                          Uncheck
+                        </span>
+                      </button>
+                    </li>
+                  ) : (
+                    <li key={m.id} className="truncate py-1">
+                      {m.label}
+                    </li>
+                  ),
+                )}
               </ul>
               {matches.length > MAX_MATCHES && (
                 <p className="text-xs text-foreground/40">+{matches.length - MAX_MATCHES} more</p>
