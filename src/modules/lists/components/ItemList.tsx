@@ -171,13 +171,42 @@ export function ItemList({
   function renderGroup(group: Group, nested = false) {
     const key = group.key;
     const collapsed = isGroupCollapsed(key);
+    const rows = <ul className="divide-y divide-foreground/10 dark:divide-foreground/15">{group.ids.map(renderRow)}</ul>;
+
+    // Expanded category groups trade the header row for a vertical label
+    // (reads top-to-bottom — upright with the device turned clockwise) in
+    // the page's left padding, so a long list spends no lines on headers
+    // and the rows don't shift right. The label sticks to the top of the
+    // screen while its group scrolls past, and tapping it collapses the
+    // group back to a normal header row. The label column also sets a
+    // minimum height, so a one-item group still fits its whole name.
+    if (itemSort === "category" && !group.subgroups && !collapsed) {
+      return (
+        <div key={key} className="flex border-t border-foreground/10 first:border-t-0 dark:border-foreground/15">
+          <button
+            type="button"
+            onClick={() => toggleGroup(key)}
+            aria-expanded
+            aria-label={`Collapse ${group.name}`}
+            title={`Collapse ${group.name}`}
+            className="-ml-6 flex w-6 shrink-0 justify-center text-foreground/40 hover:text-foreground/70 active:opacity-60"
+          >
+            <span className="sticky top-2 self-start py-1.5 text-[10px] leading-none font-medium tracking-wide whitespace-nowrap uppercase [writing-mode:vertical-rl]">
+              {group.name} <span className="text-foreground/30">({group.ids.length})</span>
+            </span>
+          </button>
+          <div className="min-w-0 flex-1">{rows}</div>
+        </div>
+      );
+    }
+
     return (
       <div key={key} className={nested ? "pl-3" : undefined}>
         <button
           type="button"
           onClick={() => toggleGroup(key)}
           aria-expanded={!collapsed}
-          className="flex w-full items-center justify-between gap-2 py-1 text-left"
+          className="flex w-full items-center justify-between gap-2 py-0.5 text-left"
         >
           <span className="text-xs font-medium tracking-wide text-foreground/40 uppercase">
             {group.name} <span className="text-foreground/30">({group.ids.length})</span>
@@ -189,9 +218,9 @@ export function ItemList({
         </button>
         {!collapsed &&
           (group.subgroups ? (
-            <div className="mt-1 space-y-2">{group.subgroups.map((sub) => renderGroup(sub, true))}</div>
+            <div className="space-y-0.5">{group.subgroups.map((sub) => renderGroup(sub, true))}</div>
           ) : (
-            <ul className="divide-y divide-foreground/10 dark:divide-foreground/15">{group.ids.map(renderRow)}</ul>
+            rows
           ))}
       </div>
     );
@@ -199,7 +228,7 @@ export function ItemList({
 
   return (
     <>
-      <div className="space-y-3">
+      <div className="space-y-1">
         {flatIds.length > 0 && (
           <ul className="divide-y divide-foreground/10 dark:divide-foreground/15">{flatIds.map(renderRow)}</ul>
         )}
