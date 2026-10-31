@@ -174,7 +174,8 @@ export function ItemList({
     const rows = <ul className="divide-y divide-foreground/10 dark:divide-foreground/15">{group.ids.map(renderRow)}</ul>;
 
     // Expanded category groups trade the header row for a vertical label
-    // (reads top-to-bottom — upright with the device turned clockwise) in
+    // (reads bottom-to-top — vertical-rl flipped 180°, since sideways-lr
+    // isn't supported widely enough yet) in
     // the page's left padding, so a long list spends no lines on headers
     // and the rows don't shift right. The label sticks to the top of the
     // screen while its group scrolls past, and tapping it collapses the
@@ -191,7 +192,7 @@ export function ItemList({
             title={`Collapse ${group.name}`}
             className="-ml-6 flex w-6 shrink-0 justify-center text-foreground/40 hover:text-foreground/70 active:opacity-60"
           >
-            <span className="sticky top-2 self-start py-1.5 text-[10px] leading-none font-medium tracking-wide whitespace-nowrap uppercase [writing-mode:vertical-rl]">
+            <span className="sticky top-2 self-start rotate-180 py-1.5 text-xs leading-none font-medium tracking-wide whitespace-nowrap uppercase [writing-mode:vertical-rl]">
               {group.name} <span className="text-foreground/30">({group.ids.length})</span>
             </span>
           </button>
