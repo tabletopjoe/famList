@@ -45,8 +45,7 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
               title={list.title}
               kind={list.kind as ListKind}
               resetIntervalDays={list.resetIntervalDays}
-              doneCount={list.items.filter((item) => item.isDone).length}
-              totalCount={list.items.length}
+              items={list.items}
               categories={list.categories}
               statuses={list.statuses}
               isOwner={isOwner}

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { Settings, Trash2 } from "lucide-react";
+import { Settings, Square, SquareCheck, Trash2 } from "lucide-react";
 import {
+  setAllItemsDone,
   setListKind,
   setListResetInterval,
   deleteList,
@@ -13,7 +14,7 @@ import {
   deleteStatus,
   reorderStatuses,
 } from "../actions";
-import { RESET_INTERVAL_OPTIONS, type ListKind } from "../types";
+import { RESET_INTERVAL_OPTIONS, isChecklistKind, type ListKind } from "../types";
 import { CollapsibleSection } from "@/components/CollapsibleSection";
 import { LabelManager } from "./LabelManager";
 import { ListKindSelect } from "./ListKindSelect";
@@ -35,6 +36,7 @@ export function ListSettingsMenu({
   title,
   kind,
   resetIntervalDays,
+  doneCount,
   totalCount,
   categories,
   statuses,
@@ -46,6 +48,7 @@ export function ListSettingsMenu({
   title: string;
   kind: ListKind;
   resetIntervalDays: number | null;
+  doneCount: number;
   totalCount: number;
   categories: { id: string; name: string }[];
   statuses: { id: string; name: string }[];
@@ -71,6 +74,11 @@ export function ListSettingsMenu({
     document.addEventListener("pointerdown", handlePointerDown);
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [open]);
+
+  // Check/uncheck all: majority-checked -> uncheck all; otherwise (majority
+  // unchecked, or an even split) -> check all.
+  const checkAllTarget = doneCount <= totalCount - doneCount;
+  const CheckAllIcon = checkAllTarget ? SquareCheck : Square;
 
   const selectClass =
     "mt-1 w-full rounded-md border border-black/15 bg-white/80 px-2 py-[5px] text-sm text-field-ink disabled:opacity-50";
@@ -160,6 +168,20 @@ export function ListSettingsMenu({
                 <CollapsibleSection title="Share with">
                   <ListShareManager listId={listId} otherUsers={otherUsers} sharedWithIds={sharedWithIds} />
                 </CollapsibleSection>
+              </div>
+            )}
+            {/* Only checklist kinds (shopping, project) show checkboxes, so they're the only ones where check/uncheck-all does anything visible. */}
+            {isChecklistKind(kind) && (
+              <div className="border-t border-foreground/10 pt-3">
+                <button
+                  type="button"
+                  onClick={() => startTransition(() => setAllItemsDone(listId, checkAllTarget))}
+                  disabled={isPending || totalCount === 0}
+                  className="flex items-center gap-2 text-sm text-foreground/70 hover:text-foreground active:opacity-70 disabled:opacity-50"
+                >
+                  <CheckAllIcon className="size-4" strokeWidth={1.75} />
+                  {checkAllTarget ? "Check all items" : "Uncheck all items"}
+                </button>
               </div>
             )}
             <div className="border-t border-foreground/10 pt-3">

@@ -34,6 +34,8 @@ type ItemSortState = {
   setCheckedDir: (dir: CheckedSortDir) => void;
   isGroupCollapsed: (key: string) => boolean;
   toggleGroup: (key: string) => void;
+  /** Collapse or expand every group in `keys` at once (ListControls' collapse-all / expand-all). */
+  setGroupsCollapsed: (keys: string[], collapsed: boolean) => void;
 };
 
 const ItemSortContext = createContext<ItemSortState | null>(null);
@@ -141,6 +143,17 @@ export function ItemSortProvider({ listId, children }: { listId: string; childre
     persist({ collapsedGroups: next });
   }
 
+  function setGroupsCollapsed(keys: string[], collapsed: boolean) {
+    const nextDoneOpen = keys.includes(DONE_GROUP_KEY) ? !collapsed : doneGroupOpen;
+    const others = keys.filter((k) => k !== DONE_GROUP_KEY);
+    const next = collapsed
+      ? [...new Set([...collapsedGroups, ...others])]
+      : collapsedGroups.filter((k) => !others.includes(k));
+    setCollapsedGroups(next);
+    setDoneGroupOpen(nextDoneOpen);
+    persist({ collapsedGroups: next, doneGroupOpen: nextDoneOpen });
+  }
+
   return (
     <ItemSortContext.Provider
       value={{
@@ -154,6 +167,7 @@ export function ItemSortProvider({ listId, children }: { listId: string; childre
         setCheckedDir,
         isGroupCollapsed,
         toggleGroup,
+        setGroupsCollapsed,
       }}
     >
       {children}

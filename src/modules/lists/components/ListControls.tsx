@@ -1,22 +1,22 @@
 "use client";
 
-import { useTransition } from "react";
-import { RefreshCw, Trash2, ArrowUpDown, ArrowDownAZ, ListOrdered, Square, SquareCheck } from "lucide-react";
-import { setAllItemsDone } from "../actions";
+import { Trash2, ArrowUpDown, ArrowDownAZ, ListOrdered, Square, SquareCheck, ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { useDeleteMode } from "./DeleteModeContext";
 import { useItemEdit } from "./ItemEditContext";
 import { useItemSort } from "./ItemSortContext";
 import { ListSettingsMenu } from "./ListSettingsMenu";
 import { chipClass } from "@/components/chipClass";
-import { isChecklistKind, type ListKind } from "../types";
+import { collapsibleGroupKeys } from "../itemGroups";
+import type { ListKind } from "../types";
 
 type OtherUser = { id: string; name: string };
 
 /**
  * Row of per-list controls, sitting under the title/back-link row and
- * above the add-item form. Normally the delete-mode toggle, the
- * check-all/uncheck-all toggle, the sort-mode toggle, and (rightmost) the
- * list settings menu. Toggling sort mode replaces all of those with the
+ * above the add-item form. Normally the delete-mode toggle, the sort-mode
+ * toggle, expand-all / collapse-all (each only when there's a group it
+ * would change), and (rightmost) the list settings menu — check/uncheck-all
+ * lives in that menu. Toggling sort mode replaces all of those with the
  * Custom/Category sort chips instead — the toggle icon stays put either way
  * so you can flip back. `relative` here is load-bearing when the normal
  * controls are showing: it's what ListSettingsMenu's overlay panel
@@ -27,8 +27,7 @@ export function ListControls({
   title,
   kind,
   resetIntervalDays,
-  doneCount,
-  totalCount,
+  items,
   categories,
   statuses,
   isOwner,
@@ -39,8 +38,7 @@ export function ListControls({
   title: string;
   kind: ListKind;
   resetIntervalDays: number | null;
-  doneCount: number;
-  totalCount: number;
+  items: { isDone: boolean; categoryId: string | null }[];
   categories: { id: string; name: string }[];
   statuses: { id: string; name: string }[];
   isOwner: boolean;
@@ -49,13 +47,30 @@ export function ListControls({
 }) {
   const { deleteMode, toggle } = useDeleteMode();
   const { editingId } = useItemEdit();
-  const { sortPanelOpen, toggleSortPanel, itemSort, setItemSort, categoryDir, setCategoryDir, checkedDir, setCheckedDir } =
-    useItemSort();
-  const [isPending, startTransition] = useTransition();
+  const {
+    sortPanelOpen,
+    toggleSortPanel,
+    itemSort,
+    setItemSort,
+    categoryDir,
+    setCategoryDir,
+    checkedDir,
+    setCheckedDir,
+    isGroupCollapsed,
+    setGroupsCollapsed,
+  } = useItemSort();
 
-  // Majority-checked -> uncheck all; otherwise (majority unchecked, or an
-  // even split) -> check all.
-  const target = doneCount > totalCount - doneCount ? false : true;
+  // The groups ItemList is showing. A done-group sub-group only counts
+  // while its parent is open — otherwise it isn't on screen, so it
+  // shouldn't make a button appear. Expand/collapse-all still apply to
+  // every group, hidden sub-groups included.
+  const groups = collapsibleGroupKeys(items, kind, itemSort, categories);
+  const groupKeys = groups.map((g) => g.key);
+  const onScreen = groups.filter((g) => !g.parent || !isGroupCollapsed(g.parent));
+  const anyCollapsed = onScreen.some((g) => isGroupCollapsed(g.key));
+  const anyExpanded = onScreen.some((g) => !isGroupCollapsed(g.key));
+  const iconButtonClass =
+    "flex size-7.5 shrink-0 items-center justify-center rounded-md text-foreground/40 transition-colors hover:text-foreground/70 active:bg-foreground/25";
 
   // Editing an item collapses the list down to just that row + the edit
   // form — these controls don't apply to anything visible while that's up,
@@ -151,26 +166,36 @@ export function ListControls({
       >
         <Trash2 className="size-4" strokeWidth={1.75} />
       </button>
-      {/* Only checklist kinds (shopping, project) show checkboxes, so they're the only ones where check/uncheck-all does anything visible. */}
-      {isChecklistKind(kind) && (
+      {sortToggleButton}
+      {anyExpanded && (
         <button
           type="button"
-          onClick={() => startTransition(() => setAllItemsDone(listId, target))}
-          disabled={isPending || totalCount === 0}
-          aria-label={target ? "Check all items" : "Uncheck all items"}
-          title={target ? "Check all items" : "Uncheck all items"}
-          className="flex size-7.5 items-center justify-center rounded-md text-foreground/40 transition-colors hover:bg-foreground/10 hover:text-foreground/70 active:bg-foreground/20 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-foreground/40"
+          onClick={() => setGroupsCollapsed(groupKeys, true)}
+          aria-label="Collapse all groups"
+          title="Collapse all groups"
+          className={iconButtonClass}
         >
-          <RefreshCw className="size-4" strokeWidth={1.75} />
+          <ChevronsDownUp className="size-4" strokeWidth={1.75} />
         </button>
       )}
-      {sortToggleButton}
+      {anyCollapsed && (
+        <button
+          type="button"
+          onClick={() => setGroupsCollapsed(groupKeys, false)}
+          aria-label="Expand all groups"
+          title="Expand all groups"
+          className={iconButtonClass}
+        >
+          <ChevronsUpDown className="size-4" strokeWidth={1.75} />
+        </button>
+      )}
       <ListSettingsMenu
         listId={listId}
         title={title}
         kind={kind}
         resetIntervalDays={resetIntervalDays}
-        totalCount={totalCount}
+        doneCount={items.filter((item) => item.isDone).length}
+        totalCount={items.length}
         categories={categories}
         statuses={statuses}
         isOwner={isOwner}
